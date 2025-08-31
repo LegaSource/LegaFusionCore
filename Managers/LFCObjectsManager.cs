@@ -37,7 +37,7 @@ public static class LFCObjectsManager
             timePassed += 0.1f;
         }
 
-        ForceGrabObject(grabbableObject, player);
+        if (!player.isGrabbingObjectAnimation) ForceGrabObject(grabbableObject, player);
     }
 
     public static void ForceGrabObject(GrabbableObject grabbableObject, PlayerControllerB player)

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 
@@ -27,7 +28,10 @@ public class ShaderCustomPass : CustomPass
         foreach (Renderer renderer in renderers)
         {
             if (renderer != null && targetRenderers[tag].ContainsKey(renderer))
+            {
+                renderer.SetPropertyBlock(null);
                 _ = targetRenderers[tag].Remove(renderer);
+            }
         }
 
         if (targetRenderers[tag].Count == 0) _ = targetRenderers.Remove(tag);
@@ -35,7 +39,9 @@ public class ShaderCustomPass : CustomPass
 
     public void RemoveRenderersByTag(string tag)
     {
-        if (string.IsNullOrEmpty(tag)) return;
+        if (string.IsNullOrEmpty(tag) || !targetRenderers.ContainsKey(tag)) return;
+
+        targetRenderers[tag].ToList().ForEach(kvp => kvp.Key?.SetPropertyBlock(null));
         _ = targetRenderers.Remove(tag);
     }
 
@@ -56,7 +62,9 @@ public class ShaderCustomPass : CustomPass
                 if (renderer == null || material == null) continue;
 
                 MaterialPropertyBlock block = new MaterialPropertyBlock();
-                block.SetColor("_BaseColor", color);
+                // Utiliser la couleur envoyée en paramètre mais garder l'alpha original
+                block.SetColor("_BaseColor", new Color(color.r, color.g, color.b, material.GetColor("_BaseColor").a));
+                renderer.SetPropertyBlock(block);
 
                 ctx.cmd.DrawRenderer(renderer, material, 0, 0);
             }

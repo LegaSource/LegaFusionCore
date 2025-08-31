@@ -29,7 +29,7 @@ public class CustomPassManager : MonoBehaviour
         }
     }
 
-    public static void SetupAuraForObjects(GameObject[] objects, Material material, string tag, Color color)
+    public static void SetupAuraForObjects(GameObject[] objects, Material material, string tag, Color color = default)
     {
         Renderer[] renderers = GetFilteredRenderersFromObjects(objects);
         if (renderers.Length > 0) SetupCustomPass(renderers, material, tag, color);

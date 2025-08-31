@@ -24,7 +24,7 @@ public class AddonProp<T> : PhysicsProp where T : AddonComponent
                 return;
             }
             AddonComponent addonComponent = grabbableObject.GetComponent<AddonComponent>();
-            if (addonComponent != null && addonComponent.hasAddon)
+            if (addonComponent != null)
             {
                 HUDManager.Instance.DisplayTip("Impossible action", "This item already has an addon");
                 return;

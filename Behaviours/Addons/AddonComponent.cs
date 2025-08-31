@@ -7,17 +7,11 @@ namespace LegaFusionCore.Behaviours.Addons;
 
 public abstract class AddonComponent : MonoBehaviour
 {
-    public bool hasAddon = false;
+    public GrabbableObject grabbableObject;
     public string addonName;
     public bool isPassive;
 
     public bool onCooldown = false;
-
-    public void Start()
-    {
-        if (isPassive) return;
-        SetTipsForItem([AddonInput.Instance.GetAddonToolTip()]);
-    }
 
     public virtual void ActivateAddonAbility() { }
 
@@ -34,6 +28,7 @@ public abstract class AddonComponent : MonoBehaviour
         while (cooldown > 0)
         {
             yield return new WaitForSecondsRealtime(1f);
+            if (grabbableObject == null || !grabbableObject.isHeld) continue;
 
             cooldown--;
             SetCooldownTipsForItem(cooldown);
@@ -49,22 +44,16 @@ public abstract class AddonComponent : MonoBehaviour
 
     public void SetTipsForItem(string[] toolTips)
     {
-        GrabbableObject grabbableObject = GetComponentInParent<GrabbableObject>();
-        if (grabbableObject == null || grabbableObject.playerHeldBy == null || grabbableObject.isPocketed || grabbableObject.playerHeldBy != GameNetworkManager.Instance.localPlayerController) return;
-
+        if (grabbableObject?.playerHeldBy == null || grabbableObject.isPocketed || grabbableObject.playerHeldBy != GameNetworkManager.Instance.localPlayerController) return;
         HUDManager.Instance.ChangeControlTipMultiple(grabbableObject.itemProperties.toolTips.Concat(toolTips).ToArray(), holdingItem: true, grabbableObject.itemProperties);
     }
 
     public void RemoveAddon()
     {
-        GrabbableObject grabbableObject = GetComponentInParent<GrabbableObject>();
-        if (grabbableObject == null) return;
-
-        ScanNodeProperties scanNode = grabbableObject.gameObject.GetComponentInChildren<ScanNodeProperties>();
+        ScanNodeProperties scanNode = grabbableObject?.gameObject.GetComponentInChildren<ScanNodeProperties>();
         if (scanNode == null) return;
 
-        string[] textsToRemove = { "\nAddon: " + addonName, "Addon: " + addonName };
-
+        string[] textsToRemove = ["\nAddon: " + addonName, "Addon: " + addonName];
         foreach (string textToRemove in textsToRemove)
         {
             int index = scanNode.subText.IndexOf(textToRemove);
@@ -75,7 +64,6 @@ public abstract class AddonComponent : MonoBehaviour
             }
         }
 
-        hasAddon = false;
-        addonName = null;
+        Destroy(gameObject);
     }
 }

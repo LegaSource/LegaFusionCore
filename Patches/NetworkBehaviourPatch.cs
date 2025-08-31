@@ -5,7 +5,7 @@ using Unity.Netcode;
 
 namespace LegaFusionCore.Patches;
 
-internal class NetworkBehaviourPatch
+public class NetworkBehaviourPatch
 {
     private static readonly Type[] trackedTypes =
     {

@@ -1,6 +1,8 @@
 ﻿using GameNetcodeStuff;
 using LegaFusionCore.Behaviours.Addons;
 using System.Collections.Generic;
+using System.Linq;
+using Unity.Netcode;
 using UnityEngine;
 
 namespace LegaFusionCore.Utilities;
@@ -16,10 +18,31 @@ public class LFCUtilities
         }
     }
 
+    public static GameObject GetPrefabFromName(string name)
+    {
+        GameObject item = null;
+        foreach (NetworkPrefabsList networkPrefabList in NetworkManager.Singleton.NetworkConfig.Prefabs.NetworkPrefabsLists ?? Enumerable.Empty<NetworkPrefabsList>())
+        {
+            foreach (NetworkPrefab networkPrefab in networkPrefabList.PrefabList ?? Enumerable.Empty<NetworkPrefab>())
+            {
+                GrabbableObject grabbableObject = networkPrefab.Prefab.GetComponent<GrabbableObject>();
+                if (grabbableObject == null || grabbableObject.itemProperties == null) continue;
+                if (!grabbableObject.itemProperties.itemName.Equals(name)) continue;
+
+                item = networkPrefab.Prefab;
+                if (item != null) break;
+            }
+        }
+        return item;
+    }
+
+    public static T GetSafeComponent<T>(GameObject gameObject) where T : Component
+        => gameObject == null || gameObject is not Object obj || !obj ? null : gameObject.GetComponent<T>();
+
     public static void SetAddonComponent<T>(GrabbableObject grabbableObject, string addonName, bool isPassive = false) where T : AddonComponent
     {
         T addonComponent = grabbableObject.gameObject.AddComponent<T>();
-        addonComponent.hasAddon = true;
+        addonComponent.grabbableObject = grabbableObject;
         addonComponent.addonName = addonName;
         addonComponent.isPassive = isPassive;
 

@@ -1,0 +1,79 @@
+﻿using GameNetcodeStuff;
+using HarmonyLib;
+using LegaFusionCore.Managers;
+using LegaFusionCore.Registries;
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace LegaFusionCore.Patches;
+
+public class EnemyAIPatch
+{
+    private static readonly Dictionary<EnemyAI, int> extendedEnemyHP = [];
+    private static readonly int rateHP = 100;
+
+    [HarmonyPatch(typeof(EnemyAI), nameof(EnemyAI.Start))]
+    [HarmonyPostfix]
+    public static void InitExtendedHP(EnemyAI __instance)
+    {
+        if (extendedEnemyHP.ContainsKey(__instance)) return;
+        extendedEnemyHP[__instance] = __instance.enemyHP * rateHP;
+    }
+
+    public static int GetExtendedHP(EnemyAI enemy)
+    {
+        if (!extendedEnemyHP.ContainsKey(enemy)) InitExtendedHP(enemy);
+        return extendedEnemyHP[enemy];
+    }
+
+    public static void SetExtendedHP(EnemyAI enemy, int value)
+        => extendedEnemyHP[enemy] = Mathf.Max(0, value);
+
+    public static void DamageEnemy(EnemyAI enemy, int force, int playerWhoHit = -1, bool playHitSFX = false, int hitID = -1, bool callHitEnemy = true)
+    {
+        InitExtendedHP(enemy);
+        PlayerControllerB player = playerWhoHit == -1 ? null : StartOfRound.Instance.allPlayerObjects[playerWhoHit].GetComponent<PlayerControllerB>();
+
+        // Inflige des dégâts à la vie étendue
+        int newHP = GetExtendedHP(enemy) - force;
+        SetExtendedHP(enemy, newHP);
+
+        // Vérifie si la vie vanilla doit être mise à jour
+        int expectedVanillaHP = Mathf.CeilToInt(newHP / rateHP);
+        if (callHitEnemy)
+        {
+            if (expectedVanillaHP < enemy.enemyHP)
+            {
+                enemy.HitEnemyOnLocalClient(enemy.enemyHP - expectedVanillaHP, playerWhoHit: player, playHitSFX: playHitSFX, hitID: hitID);
+            }
+            else if (playHitSFX && enemy.enemyType?.hitBodySFX != null && !enemy.isEnemyDead)
+            {
+                enemy.creatureSFX.PlayOneShot(enemy.enemyType.hitBodySFX);
+                WalkieTalkie.TransmitOneShotAudio(enemy.creatureSFX, enemy.enemyType.hitBodySFX);
+            }
+        }
+
+        ApplyStatusEffectInteraction(enemy, player, force);
+    }
+
+    public static void ApplyStatusEffectInteraction(EnemyAI enemy, PlayerControllerB player, int regenHP)
+    {
+        if (enemy == null || player == null) return;
+
+        if (LFCStatusEffectRegistry.HasStatus(enemy.gameObject, LFCStatusEffectRegistry.StatusEffectType.BLEEDING))
+        {
+            LFCPlayerManager.HealPlayerOnLocalClient(player, Mathf.CeilToInt(regenHP / 10f));
+        }
+    }
+
+    [HarmonyPatch(typeof(EnemyAI), nameof(EnemyAI.HitEnemy))]
+    [HarmonyPostfix]
+    public static void HitEnemyPostfix(EnemyAI __instance, int force = 1, PlayerControllerB playerWhoHit = null, bool playHitSFX = false, int hitID = -1)
+    {
+        int extendedHP = Mathf.CeilToInt(GetExtendedHP(__instance) / rateHP);
+        if (extendedHP < __instance.enemyHP) return;
+
+        int playerId = playerWhoHit != null ? (int)playerWhoHit.playerClientId : -1;
+        DamageEnemy(__instance, force * rateHP, playerId, playHitSFX, hitID, callHitEnemy: false);
+    }
+}

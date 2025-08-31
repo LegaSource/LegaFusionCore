@@ -33,6 +33,7 @@ public class LegaFusionCore : BaseUnityPlugin
     public static GameObject smokeParticle;
     public static GameObject bluePortalParticle;
     public static GameObject redPortalParticle;
+    public static GameObject bloodParticle;
 
     public void Awake()
     {
@@ -47,6 +48,7 @@ public class LegaFusionCore : BaseUnityPlugin
         harmony.PatchAll(typeof(NetworkBehaviourPatch));
         harmony.PatchAll(typeof(PlayerControllerBPatch));
         harmony.PatchAll(typeof(GrabbableObjectPatch));
+        harmony.PatchAll(typeof(EnemyAIPatch));
     }
 
     public static void LoadManager()
@@ -73,8 +75,8 @@ public class LegaFusionCore : BaseUnityPlugin
 
     public static void LoadShaders()
     {
-        wallhackShader = bundle.LoadAsset<Material>("Assets/Shaders/wallhackMaterial.mat");
-        transparentShader = bundle.LoadAsset<Material>("Assets/Shaders/transparentMaterial.mat");
+        wallhackShader = bundle.LoadAsset<Material>("Assets/Shaders/WallhackMaterial.mat");
+        transparentShader = bundle.LoadAsset<Material>("Assets/Shaders/TransparentMaterial.mat");
     }
 
     public void LoadParticles()
