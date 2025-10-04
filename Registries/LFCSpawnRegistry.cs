@@ -43,6 +43,5 @@ public static class LFCSpawnRegistry
         return result;
     }
 
-    public static void Clear()
-        => registry.Clear();
+    public static void Clear() => registry.Clear();
 }

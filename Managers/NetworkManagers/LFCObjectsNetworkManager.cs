@@ -6,8 +6,7 @@ namespace LegaFusionCore.Managers.NetworkManagers;
 public partial class LFCNetworkManager
 {
     [ServerRpc(RequireOwnership = false)]
-    public void SetScrapValueServerRpc(NetworkObjectReference obj, int value)
-        => SetScrapValueClientRpc(obj, value);
+    public void SetScrapValueServerRpc(NetworkObjectReference obj, int value) => SetScrapValueClientRpc(obj, value);
 
     [ClientRpc]
     public void SetScrapValueClientRpc(NetworkObjectReference obj, int value)
@@ -17,8 +16,7 @@ public partial class LFCNetworkManager
     }
 
     [ServerRpc(RequireOwnership = false)]
-    public void ForceGrabObjectServerRpc(NetworkObjectReference obj, int playerId)
-        => ForceGrabObjectClientRpc(obj, playerId);
+    public void ForceGrabObjectServerRpc(NetworkObjectReference obj, int playerId) => ForceGrabObjectClientRpc(obj, playerId);
 
     [ClientRpc]
     public void ForceGrabObjectClientRpc(NetworkObjectReference obj, int playerId)
@@ -32,8 +30,7 @@ public partial class LFCNetworkManager
     }
 
     [ServerRpc(RequireOwnership = false)]
-    public void DestroyObjectServerRpc(NetworkObjectReference obj)
-        => DestroyObjectClientRpc(obj);
+    public void DestroyObjectServerRpc(NetworkObjectReference obj) => DestroyObjectClientRpc(obj);
 
     [ClientRpc]
     public void DestroyObjectClientRpc(NetworkObjectReference obj)

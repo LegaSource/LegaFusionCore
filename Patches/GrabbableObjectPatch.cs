@@ -1,5 +1,4 @@
-﻿using EasyTextEffects.Editor.MyBoxCopy.Extensions;
-using HarmonyLib;
+﻿using HarmonyLib;
 using LegaFusionCore.Behaviours.Addons;
 using LegaFusionCore.CustomInputs;
 using UnityEngine;
@@ -44,5 +43,8 @@ public class GrabbableObjectPatch
     [HarmonyPatch(typeof(GrabbableObject), nameof(GrabbableObject.DestroyObjectInHand))]
     [HarmonyPostfix]
     private static void DestroyObjectRenderers(ref GrabbableObject __instance)
-        => __instance.gameObject.GetComponentsInChildren<Renderer>().ForEach(r => Object.Destroy(r));
+    {
+        foreach (Renderer renderer in __instance.gameObject.GetComponentsInChildren<Renderer>())
+            Object.Destroy(renderer);
+    }
 }

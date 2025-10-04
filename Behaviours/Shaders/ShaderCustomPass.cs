@@ -41,12 +41,16 @@ public class ShaderCustomPass : CustomPass
     {
         if (string.IsNullOrEmpty(tag) || !targetRenderers.ContainsKey(tag)) return;
 
-        targetRenderers[tag].ToList().ForEach(kvp => kvp.Key?.SetPropertyBlock(null));
+        foreach (KeyValuePair<Renderer, (Material, Color)> kvp in targetRenderers[tag].ToList())
+        {
+            if (kvp.Key == null) continue;
+            kvp.Key.SetPropertyBlock(new MaterialPropertyBlock());
+        }
+
         _ = targetRenderers.Remove(tag);
     }
 
-    public void ClearAll()
-        => targetRenderers.Clear();
+    public void ClearAll() => targetRenderers.Clear();
 
     public override void Execute(CustomPassContext ctx)
     {
@@ -61,10 +65,13 @@ public class ShaderCustomPass : CustomPass
 
                 if (renderer == null || material == null) continue;
 
-                MaterialPropertyBlock block = new MaterialPropertyBlock();
-                // Utiliser la couleur envoyée en paramètre mais garder l'alpha original
-                block.SetColor("_BaseColor", new Color(color.r, color.g, color.b, material.GetColor("_BaseColor").a));
-                renderer.SetPropertyBlock(block);
+                if (material.HasProperty("_BaseColor"))
+                {
+                    MaterialPropertyBlock block = new MaterialPropertyBlock();
+                    // Utiliser la couleur envoyée en paramètre mais garder l'alpha original
+                    block.SetColor("_BaseColor", new Color(color.r, color.g, color.b, material.GetColor("_BaseColor").a));
+                    renderer.SetPropertyBlock(block);
+                }
 
                 ctx.cmd.DrawRenderer(renderer, material, 0, 0);
             }

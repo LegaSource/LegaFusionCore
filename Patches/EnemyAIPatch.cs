@@ -1,5 +1,6 @@
 ﻿using GameNetcodeStuff;
 using HarmonyLib;
+using LegaFusionCore.Behaviours;
 using LegaFusionCore.Managers;
 using LegaFusionCore.Registries;
 using System.Collections.Generic;
@@ -14,6 +15,21 @@ public class EnemyAIPatch
 
     [HarmonyPatch(typeof(EnemyAI), nameof(EnemyAI.Start))]
     [HarmonyPostfix]
+    public static void PostStart(EnemyAI __instance)
+    {
+        AddSpeedBehaviour(__instance);
+        InitExtendedHP(__instance);
+    }
+
+    public static void AddSpeedBehaviour(EnemyAI __instance)
+    {
+        if (!__instance.TryGetComponent<EnemySpeedBehaviour>(out _))
+        {
+            EnemySpeedBehaviour speedBehaviour = __instance.gameObject.AddComponent<EnemySpeedBehaviour>();
+            speedBehaviour.enemy = __instance;
+        }
+    }
+
     public static void InitExtendedHP(EnemyAI __instance)
     {
         if (extendedEnemyHP.ContainsKey(__instance)) return;
@@ -26,25 +42,28 @@ public class EnemyAIPatch
         return extendedEnemyHP[enemy];
     }
 
-    public static void SetExtendedHP(EnemyAI enemy, int value)
-        => extendedEnemyHP[enemy] = Mathf.Max(0, value);
+    public static void SetExtendedHP(EnemyAI enemy, int value) => extendedEnemyHP[enemy] = Mathf.Max(0, value);
 
     public static void DamageEnemy(EnemyAI enemy, int force, int playerWhoHit = -1, bool playHitSFX = false, int hitID = -1, bool callHitEnemy = true)
     {
         InitExtendedHP(enemy);
         PlayerControllerB player = playerWhoHit == -1 ? null : StartOfRound.Instance.allPlayerObjects[playerWhoHit].GetComponent<PlayerControllerB>();
 
+        if (LFCStatusEffectRegistry.HasStatus(enemy.gameObject, LFCStatusEffectRegistry.StatusEffectType.POISON))
+            force = (int)(force * 1.5);
+
         // Inflige des dégâts à la vie étendue
         int newHP = GetExtendedHP(enemy) - force;
         SetExtendedHP(enemy, newHP);
 
         // Vérifie si la vie vanilla doit être mise à jour
-        int expectedVanillaHP = Mathf.CeilToInt(newHP / rateHP);
+        int expectedVanillaHP = Mathf.CeilToInt(newHP / (float)rateHP);
         if (callHitEnemy)
         {
             if (expectedVanillaHP < enemy.enemyHP)
             {
-                enemy.HitEnemyOnLocalClient(enemy.enemyHP - expectedVanillaHP, playerWhoHit: player, playHitSFX: playHitSFX, hitID: hitID);
+                int damageToVanilla = enemy.enemyHP - expectedVanillaHP;
+                enemy.HitEnemyOnLocalClient(damageToVanilla, playerWhoHit: player, playHitSFX: playHitSFX, hitID: hitID);
             }
             else if (playHitSFX && enemy.enemyType?.hitBodySFX != null && !enemy.isEnemyDead)
             {
@@ -53,16 +72,10 @@ public class EnemyAIPatch
             }
         }
 
-        ApplyStatusEffectInteraction(enemy, player, force);
-    }
-
-    public static void ApplyStatusEffectInteraction(EnemyAI enemy, PlayerControllerB player, int regenHP)
-    {
-        if (enemy == null || player == null) return;
-
-        if (LFCStatusEffectRegistry.HasStatus(enemy.gameObject, LFCStatusEffectRegistry.StatusEffectType.BLEEDING))
+        if (player != null && LFCStatusEffectRegistry.HasStatus(enemy.gameObject, LFCStatusEffectRegistry.StatusEffectType.BLEEDING))
         {
-            LFCPlayerManager.HealPlayerOnLocalClient(player, Mathf.CeilToInt(regenHP / 10f));
+            int healAmount = Mathf.CeilToInt(force / 10f);
+            LFCPlayerManager.HealPlayerOnLocalClient(player, healAmount);
         }
     }
 
@@ -76,4 +89,8 @@ public class EnemyAIPatch
         int playerId = playerWhoHit != null ? (int)playerWhoHit.playerClientId : -1;
         DamageEnemy(__instance, force * rateHP, playerId, playHitSFX, hitID, callHitEnemy: false);
     }
+
+    [HarmonyPatch(typeof(EnemyAI), nameof(EnemyAI.OnDestroy))]
+    [HarmonyPostfix]
+    public static void OnDestroyPostfix(EnemyAI __instance) => _ = extendedEnemyHP.Remove(__instance);
 }

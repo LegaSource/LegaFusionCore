@@ -9,7 +9,9 @@ namespace LegaFusionCore.Utilities;
 
 public class LFCUtilities
 {
-    public static void Shuffle<T>(List<T> list)
+    public static bool IsServer => GameNetworkManager.Instance.localPlayerController.IsServer || GameNetworkManager.Instance.localPlayerController.IsHost;
+
+    public static void Shuffle<T>(IList<T> list)
     {
         for (int i = list.Count - 1; i > 0; i--)
         {
@@ -63,6 +65,5 @@ public class LFCUtilities
         return addonComponent;
     }
 
-    public static T GetAddonComponent<T>(GrabbableObject grabbableObject) where T : AddonComponent
-        => grabbableObject?.GetComponent<T>();
+    public static T GetAddonComponent<T>(GrabbableObject grabbableObject) where T : AddonComponent => grabbableObject?.GetComponent<T>();
 }

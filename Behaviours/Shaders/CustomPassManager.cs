@@ -59,11 +59,9 @@ public class CustomPassManager : MonoBehaviour
         if (renderers.Length > 0) shaderCustomPass?.RemoveRenderers(renderers, tag);
     }
 
-    public static void RemoveAuraByTag(string tag)
-        => shaderCustomPass?.RemoveRenderersByTag(tag);
+    public static void RemoveAuraByTag(string tag) => shaderCustomPass?.RemoveRenderersByTag(tag);
 
-    public static void ClearAllAuras()
-        => shaderCustomPass?.ClearAll();
+    public static void ClearAllAuras() => shaderCustomPass?.ClearAll();
 
     private static Renderer[] GetFilteredRenderersFromObjects(GameObject[] objects)
     {

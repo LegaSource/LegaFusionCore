@@ -12,6 +12,7 @@ public abstract class AddonComponent : MonoBehaviour
     public bool isPassive;
 
     public bool onCooldown = false;
+    private Coroutine cooldownCoroutine;
 
     public virtual void ActivateAddonAbility() { }
 
@@ -20,10 +21,21 @@ public abstract class AddonComponent : MonoBehaviour
         if (onCooldown) return;
 
         onCooldown = true;
-        _ = StartCoroutine(StartCooldownCoroutine(cooldown));
+        cooldownCoroutine = StartCoroutine(StartCooldownCoroutine(cooldown));
     }
 
-    public IEnumerator StartCooldownCoroutine(int cooldown)
+    public void StopCooldown()
+    {
+        if (!onCooldown || cooldownCoroutine == null) return;
+
+        StopCoroutine(cooldownCoroutine);
+        cooldownCoroutine = null;
+
+        onCooldown = false;
+        SetCooldownTipsForItem(0);
+    }
+
+    private IEnumerator StartCooldownCoroutine(int cooldown)
     {
         while (cooldown > 0)
         {
@@ -34,17 +46,20 @@ public abstract class AddonComponent : MonoBehaviour
             SetCooldownTipsForItem(cooldown);
         }
         onCooldown = false;
+        cooldownCoroutine = null;
     }
 
     public void SetCooldownTipsForItem(int timeLeft)
     {
+        if (grabbableObject == null || grabbableObject.isPocketed) return;
+
         string toolTip = timeLeft > 0 ? $"[On cooldown: {timeLeft}]" : "";
         SetTipsForItem(isPassive ? [toolTip] : [AddonInput.Instance.GetAddonToolTip(), toolTip]);
     }
 
     public void SetTipsForItem(string[] toolTips)
     {
-        if (grabbableObject?.playerHeldBy == null || grabbableObject.isPocketed || grabbableObject.playerHeldBy != GameNetworkManager.Instance.localPlayerController) return;
+        if (grabbableObject?.playerHeldBy == null || grabbableObject.playerHeldBy != GameNetworkManager.Instance.localPlayerController) return;
         HUDManager.Instance.ChangeControlTipMultiple(grabbableObject.itemProperties.toolTips.Concat(toolTips).ToArray(), holdingItem: true, grabbableObject.itemProperties);
     }
 

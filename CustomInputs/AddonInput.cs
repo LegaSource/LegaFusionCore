@@ -18,18 +18,15 @@ public class AddonInput : LcInputActions
             instance ??= new AddonInput();
             return instance;
         }
-        private set
-            => instance = value;
+        private set => instance = value;
     }
 
     [InputAction(KeyboardControl.Y, GamepadControl = GamepadControl.ButtonNorth, Name = "Addon Ability")]
     public InputAction AddonKey { get; set; }
 
-    public void EnableInput()
-        => AddonKey.performed += ActivateAddonAbility;
+    public void EnableInput() => AddonKey.performed += ActivateAddonAbility;
 
-    public void DisableInput()
-        => AddonKey.performed -= ActivateAddonAbility;
+    public void DisableInput() => AddonKey.performed -= ActivateAddonAbility;
 
     public void ActivateAddonAbility(InputAction.CallbackContext context)
     {
@@ -44,6 +41,5 @@ public class AddonInput : LcInputActions
         addon.ActivateAddonAbility();
     }
 
-    public string GetAddonToolTip()
-        => $"Addon Ability : [{AddonKey.GetBindingDisplayString().First()}]";
+    public string GetAddonToolTip() => $"Addon Ability : [{AddonKey.GetBindingDisplayString().First()}]";
 }

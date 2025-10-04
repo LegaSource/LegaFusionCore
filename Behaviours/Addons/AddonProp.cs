@@ -49,8 +49,7 @@ public class AddonProp<T> : PhysicsProp where T : AddonComponent
         };
 
     [ServerRpc(RequireOwnership = false)]
-    private void SetAddonServerRpc(NetworkObjectReference obj)
-        => SetAddonClientRpc(obj);
+    private void SetAddonServerRpc(NetworkObjectReference obj) => SetAddonClientRpc(obj);
 
     [ClientRpc]
     private void SetAddonClientRpc(NetworkObjectReference obj)

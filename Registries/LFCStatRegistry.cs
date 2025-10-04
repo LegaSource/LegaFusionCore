@@ -56,14 +56,11 @@ public static class LFCStatRegistry
         _ = entry.modifiers.Remove(tag);
     }
 
-    public static float? GetFinalValue(string id)
-        => stats.TryGetValue(id, out StatEntry entry) ? entry.FinalValue : null;
+    public static float? GetFinalValue(string id) => stats.TryGetValue(id, out StatEntry entry) ? entry.FinalValue : null;
 
-    public static bool HasModifier(string id, string sourceTag)
-        => stats.TryGetValue(id, out StatEntry entry) && entry.modifiers.ContainsKey(sourceTag);
+    public static bool HasModifier(string id, string sourceTag) => stats.TryGetValue(id, out StatEntry entry) && entry.modifiers.ContainsKey(sourceTag);
 
-    public static float GetSumModifier(string id)
-        => stats.TryGetValue(id, out StatEntry entry) ? entry.modifiers.Values.Sum() : 0f;
+    public static float GetSumModifier(string id) => stats.TryGetValue(id, out StatEntry entry) ? entry.modifiers.Values.Sum() : 0f;
 
     public static void ClearModifiers(string id)
     {

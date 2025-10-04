@@ -1,8 +1,10 @@
 ﻿using HarmonyLib;
+using LegaFusionCore.Behaviours.Addons;
 using LegaFusionCore.CustomInputs;
 using LegaFusionCore.Managers.NetworkManagers;
 using LegaFusionCore.Registries;
 using LegaFusionCore.Utilities;
+using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -43,6 +45,18 @@ public class StartOfRoundPatch
 
             Object.Destroy(tempInstance);
             LFCPrefabRegistry.RegisterPrefab($"{LegaFusionCore.modName}{LegaFusionCore.bloodParticle.name}", LegaFusionCore.bloodParticle);
+        }
+    }
+
+    [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.ShipLeave))]
+    [HarmonyPostfix]
+    public static void EndRound()
+    {
+        LFCStatusEffectRegistry.ClearStatus();
+        foreach (AddonComponent addonComponent in Object.FindObjectsOfType<GrabbableObject>().Select(g => g.GetComponent<AddonComponent>()))
+        {
+            if (addonComponent == null) continue;
+            addonComponent.StopCooldown();
         }
     }
 

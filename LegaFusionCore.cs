@@ -28,6 +28,9 @@ public class LegaFusionCore : BaseUnityPlugin
     // Shaders
     public static Material wallhackShader;
     public static Material transparentShader;
+    public static Material bloodShader;
+    public static Material frostShader;
+    public static Material poisonShader;
 
     // Particles
     public static GameObject smokeParticle;
@@ -77,6 +80,9 @@ public class LegaFusionCore : BaseUnityPlugin
     {
         wallhackShader = bundle.LoadAsset<Material>("Assets/Shaders/WallhackMaterial.mat");
         transparentShader = bundle.LoadAsset<Material>("Assets/Shaders/TransparentMaterial.mat");
+        bloodShader = bundle.LoadAsset<Material>("Assets/Shaders/BloodMaterial.mat");
+        frostShader = bundle.LoadAsset<Material>("Assets/Shaders/FrostMaterial.mat");
+        poisonShader = bundle.LoadAsset<Material>("Assets/Shaders/PoisonMaterial.mat");
     }
 
     public void LoadParticles()
