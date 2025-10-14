@@ -14,7 +14,7 @@ public class NetworkBehaviourPatch
         typeof(EntranceTeleport)
     };
 
-    [HarmonyPatch(typeof(NetworkBehaviour), nameof(NetworkBehaviour.OnNetworkSpawn))]
+    [HarmonyPatch(typeof(NetworkBehaviour), nameof(NetworkBehaviour.InternalOnNetworkSpawn))]
     [HarmonyPostfix]
     private static void SpawnNetworkBehaviour(ref NetworkBehaviour __instance)
     {
@@ -28,7 +28,7 @@ public class NetworkBehaviourPatch
         }
     }
 
-    [HarmonyPatch(typeof(NetworkBehaviour), nameof(NetworkBehaviour.OnNetworkDespawn))]
+    [HarmonyPatch(typeof(NetworkBehaviour), nameof(NetworkBehaviour.InternalOnNetworkDespawn))]
     [HarmonyPostfix]
     private static void DestroyNetworkBehaviour(ref NetworkBehaviour __instance)
     {

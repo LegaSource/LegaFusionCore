@@ -18,7 +18,9 @@ public static class LFCSpawnRegistry
             set = [];
             registry[type] = set;
         }
-        _ = set.Add(obj);
+
+        if (!set.Contains(obj))
+            _ = set.Add(obj);
     }
 
     public static void Remove<T>(T obj) where T : Component
@@ -27,7 +29,7 @@ public static class LFCSpawnRegistry
 
         Type type = typeof(T);
         if (registry.TryGetValue(type, out HashSet<Component> set))
-            _ = set.Remove(obj);
+            _ = set.RemoveWhere(c => c == null || c == obj);
     }
 
     public static List<T> GetAllAs<T>() where T : Component
@@ -35,9 +37,12 @@ public static class LFCSpawnRegistry
         List<T> result = [];
         foreach (KeyValuePair<Type, HashSet<Component>> kvp in registry)
         {
+            _ = kvp.Value.RemoveWhere(c => c == null);
+
             foreach (Component c in kvp.Value)
             {
-                if (c is T casted) result.Add(casted);
+                if (c != null && c is T casted)
+                    result.Add(casted);
             }
         }
         return result;

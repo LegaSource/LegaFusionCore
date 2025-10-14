@@ -5,21 +5,15 @@ namespace LegaFusionCore.Managers.NetworkManagers;
 
 public partial class LFCNetworkManager
 {
-    [ServerRpc(RequireOwnership = false)]
-    public void SetScrapValueServerRpc(NetworkObjectReference obj, int value) => SetScrapValueClientRpc(obj, value);
-
-    [ClientRpc]
-    public void SetScrapValueClientRpc(NetworkObjectReference obj, int value)
+    [Rpc(SendTo.Everyone, RequireOwnership = false)]
+    public void SetScrapValueEveryoneRpc(NetworkObjectReference obj, int value)
     {
         if (!obj.TryGet(out NetworkObject networkObject)) return;
         networkObject.gameObject.GetComponentInChildren<GrabbableObject>()?.SetScrapValue(value);
     }
 
-    [ServerRpc(RequireOwnership = false)]
-    public void ForceGrabObjectServerRpc(NetworkObjectReference obj, int playerId) => ForceGrabObjectClientRpc(obj, playerId);
-
-    [ClientRpc]
-    public void ForceGrabObjectClientRpc(NetworkObjectReference obj, int playerId)
+    [Rpc(SendTo.Everyone, RequireOwnership = false)]
+    public void ForceGrabObjectEveryoneRpc(NetworkObjectReference obj, int playerId)
     {
         if (!obj.TryGet(out NetworkObject networkObject)) return;
 
@@ -29,11 +23,8 @@ public partial class LFCNetworkManager
         _ = StartCoroutine(LFCObjectsManager.ForceGrabObjectCoroutine(networkObject.gameObject.GetComponentInChildren<GrabbableObject>(), player));
     }
 
-    [ServerRpc(RequireOwnership = false)]
-    public void DestroyObjectServerRpc(NetworkObjectReference obj) => DestroyObjectClientRpc(obj);
-
-    [ClientRpc]
-    public void DestroyObjectClientRpc(NetworkObjectReference obj)
+    [Rpc(SendTo.Everyone, RequireOwnership = false)]
+    public void DestroyObjectEveryoneRpc(NetworkObjectReference obj)
     {
         if (!obj.TryGet(out NetworkObject networkObject)) return;
 

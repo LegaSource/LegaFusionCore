@@ -9,6 +9,6 @@ public partial class LFCNetworkManager : NetworkBehaviour
 
     public void Awake() => Instance = this;
 
-    [ClientRpc]
-    public void PlayParticleClientRpc(string tag, Vector3 position, Quaternion rotation) => LFCGlobalManager.PlayParticle(tag, position, rotation);
+    [Rpc(SendTo.Everyone, RequireOwnership = false)]
+    public void PlayParticleEveryoneRpc(string tag, Vector3 position, Quaternion rotation) => LFCGlobalManager.PlayParticle(tag, position, rotation);
 }

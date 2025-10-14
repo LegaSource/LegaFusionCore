@@ -76,6 +76,6 @@ public static class LFCObjectsManager
         NetworkObject networkObject = grabbableObject?.GetComponent<NetworkObject>();
         if (networkObject == null || !networkObject.IsSpawned) return;
 
-        LFCNetworkManager.Instance.DestroyObjectClientRpc(networkObject);
+        LFCNetworkManager.Instance.DestroyObjectEveryoneRpc(networkObject);
     }
 }
