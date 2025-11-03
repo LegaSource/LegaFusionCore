@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using LegaFusionCore.Behaviours.Addons;
 using LegaFusionCore.CustomInputs;
+using LegaFusionCore.Utilities;
 using UnityEngine;
 
 namespace LegaFusionCore.Patches;
@@ -22,12 +23,11 @@ public class GrabbableObjectPatch
     [HarmonyPostfix]
     private static void GrabObject(ref GrabbableObject __instance)
     {
-        if (__instance.playerHeldBy == null || __instance.playerHeldBy != GameNetworkManager.Instance.localPlayerController) return;
-
-        AddonComponent addonComponent = __instance.gameObject.GetComponent<AddonComponent>();
-        if (addonComponent == null) return;
-
-        addonComponent.StartCooldown(30);
+        if (LFCUtilities.ShouldBeLocalPlayer(__instance.playerHeldBy))
+        {
+            AddonComponent addonComponent = __instance.gameObject.GetComponent<AddonComponent>();
+            addonComponent?.StartCooldown(30);
+        }
     }
 
     [HarmonyPatch(typeof(GrabbableObject), nameof(GrabbableObject.SetControlTipsForItem))]

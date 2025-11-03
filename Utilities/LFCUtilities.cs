@@ -7,9 +7,11 @@ using UnityEngine;
 
 namespace LegaFusionCore.Utilities;
 
-public class LFCUtilities
+public static class LFCUtilities
 {
     public static bool IsServer => GameNetworkManager.Instance.localPlayerController.IsServer || GameNetworkManager.Instance.localPlayerController.IsHost;
+    public static bool ShouldBeLocalPlayer(PlayerControllerB player) => player != null && player == GameNetworkManager.Instance?.localPlayerController;
+    public static bool ShouldNotBeLocalPlayer(PlayerControllerB player) => player != null && player != GameNetworkManager.Instance?.localPlayerController;
 
     public static void Shuffle<T>(IList<T> list)
     {

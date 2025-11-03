@@ -1,4 +1,5 @@
 ﻿using GameNetcodeStuff;
+using LegaFusionCore.Utilities;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -26,11 +27,16 @@ public partial class LFCNetworkManager
     }
 
     [Rpc(SendTo.Everyone, RequireOwnership = false)]
+    public void DamagePlayerEveryoneRpc(int playerId, int damageNumber)
+    {
+        PlayerControllerB player = StartOfRound.Instance.allPlayerObjects[playerId].GetComponent<PlayerControllerB>();
+        if (LFCUtilities.ShouldBeLocalPlayer(player)) player.DamagePlayer(damageNumber, hasDamageSFX: true, callRPC: true, CauseOfDeath.Unknown);
+    }
+
+    [Rpc(SendTo.Everyone, RequireOwnership = false)]
     public void KillPlayerEveryoneRpc(int playerId, Vector3 velocity, bool spawnBody, int causeOfDeath)
     {
         PlayerControllerB player = StartOfRound.Instance.allPlayerObjects[playerId].GetComponent<PlayerControllerB>();
-        if (player != GameNetworkManager.Instance.localPlayerController) return;
-
-        player.KillPlayer(velocity, spawnBody, (CauseOfDeath)causeOfDeath);
+        if (LFCUtilities.ShouldBeLocalPlayer(player)) player.KillPlayer(velocity, spawnBody, (CauseOfDeath)causeOfDeath);
     }
 }

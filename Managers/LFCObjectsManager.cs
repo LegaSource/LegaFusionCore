@@ -1,6 +1,7 @@
 ﻿using GameNetcodeStuff;
 using LegaFusionCore.Managers.NetworkManagers;
 using LegaFusionCore.Registries;
+using LegaFusionCore.Utilities;
 using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -14,7 +15,7 @@ public static class LFCObjectsManager
 
     public static GrabbableObject SpawnObjectForServer(GameObject spawnPrefab, Vector3 position, Quaternion rotation)
     {
-        if (!GameNetworkManager.Instance.localPlayerController.IsServer && !GameNetworkManager.Instance.localPlayerController.IsHost) return null;
+        if (!LFCUtilities.IsServer) return null;
 
         GameObject gameObject = Object.Instantiate(spawnPrefab, position, rotation, StartOfRound.Instance.propsContainer);
         GrabbableObject grabbableObject = gameObject.GetComponent<GrabbableObject>();

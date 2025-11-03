@@ -88,9 +88,8 @@ public class LFCStatusEffectRegistry : MonoBehaviour
             base.Apply(entity);
 
             PlayerControllerB player = LFCUtilities.GetSafeComponent<PlayerControllerB>(entity);
-            if (player != null && player == GameNetworkManager.Instance.localPlayerController) return;
-
-            CustomPassManager.SetupAuraForObjects([entity.gameObject], LegaFusionCore.bloodShader, $"{LegaFusionCore.modName}{LegaFusionCore.bloodShader.name}");
+            if (LFCUtilities.ShouldNotBeLocalPlayer(player))
+                CustomPassManager.SetupAuraForObjects([entity.gameObject], LegaFusionCore.bloodShader, $"{LegaFusionCore.modName}{LegaFusionCore.bloodShader.name}");
         }
 
         public override void Tick(GameObject entity)
@@ -122,13 +121,10 @@ public class LFCStatusEffectRegistry : MonoBehaviour
             }
 
             PlayerControllerB player = LFCUtilities.GetSafeComponent<PlayerControllerB>(entity);
-            if (player != null && !player.isPlayerDead && player == GameNetworkManager.Instance.localPlayerController)
-            {
-                LFCStatRegistry.AddModifier(Constants.STAT_SPEED, $"{LegaFusionCore.modName}{LegaFusionCore.frostShader.name}", -100f);
-                return;
-            }
+            if (player == null || player.isPlayerDead) return;
 
-            CustomPassManager.SetupAuraForObjects([entity.gameObject], LegaFusionCore.frostShader, $"{LegaFusionCore.modName}{LegaFusionCore.frostShader.name}");
+            if (LFCUtilities.ShouldBeLocalPlayer(player)) LFCStatRegistry.AddModifier(Constants.STAT_SPEED, $"{LegaFusionCore.modName}{LegaFusionCore.frostShader.name}", -100f);
+            else CustomPassManager.SetupAuraForObjects([entity.gameObject], LegaFusionCore.frostShader, $"{LegaFusionCore.modName}{LegaFusionCore.frostShader.name}");
         }
 
         public override void Expire(GameObject entity)
@@ -145,8 +141,7 @@ public class LFCStatusEffectRegistry : MonoBehaviour
             }
 
             PlayerControllerB player = LFCUtilities.GetSafeComponent<PlayerControllerB>(entity);
-            if (player != null && player == GameNetworkManager.Instance.localPlayerController)
-                LFCStatRegistry.RemoveModifier(Constants.STAT_SPEED, $"{LegaFusionCore.modName}{LegaFusionCore.frostShader.name}");
+            if (LFCUtilities.ShouldBeLocalPlayer(player)) LFCStatRegistry.RemoveModifier(Constants.STAT_SPEED, $"{LegaFusionCore.modName}{LegaFusionCore.frostShader.name}");
         }
     }
 
@@ -158,9 +153,8 @@ public class LFCStatusEffectRegistry : MonoBehaviour
             base.Apply(entity);
 
             PlayerControllerB player = LFCUtilities.GetSafeComponent<PlayerControllerB>(entity);
-            if (player != null && player == GameNetworkManager.Instance.localPlayerController) return;
-
-            CustomPassManager.SetupAuraForObjects([entity.gameObject], LegaFusionCore.poisonShader, $"{LegaFusionCore.modName}{LegaFusionCore.poisonShader.name}");
+            if (LFCUtilities.ShouldNotBeLocalPlayer(player))
+                CustomPassManager.SetupAuraForObjects([entity.gameObject], LegaFusionCore.poisonShader, $"{LegaFusionCore.modName}{LegaFusionCore.poisonShader.name}");
         }
 
         public override void Expire(GameObject entity)

@@ -1,4 +1,5 @@
 ﻿using LegaFusionCore.CustomInputs;
+using LegaFusionCore.Utilities;
 using System.Collections;
 using System.Linq;
 using UnityEngine;
@@ -59,7 +60,7 @@ public abstract class AddonComponent : MonoBehaviour
 
     public void SetTipsForItem(string[] toolTips)
     {
-        if (grabbableObject?.playerHeldBy == null || grabbableObject.playerHeldBy != GameNetworkManager.Instance.localPlayerController) return;
+        if (grabbableObject == null || !LFCUtilities.ShouldBeLocalPlayer(grabbableObject.playerHeldBy)) return;
         HUDManager.Instance.ChangeControlTipMultiple(grabbableObject.itemProperties.toolTips.Concat(toolTips).ToArray(), holdingItem: true, grabbableObject.itemProperties);
     }
 

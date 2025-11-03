@@ -1,5 +1,4 @@
-﻿using GameNetcodeStuff;
-using LegaFusionCore.Behaviours.Addons;
+﻿using LegaFusionCore.Behaviours.Addons;
 using LethalCompanyInputUtils.Api;
 using LethalCompanyInputUtils.BindingPathEnums;
 using System.Linq;
@@ -32,10 +31,7 @@ public class AddonInput : LcInputActions
     {
         if (!context.performed) return;
 
-        PlayerControllerB player = GameNetworkManager.Instance.localPlayerController;
-        if (player == null || player.currentlyHeldObjectServer == null) return;
-
-        AddonComponent addon = player.currentlyHeldObjectServer.GetComponent<AddonComponent>();
+        AddonComponent addon = GameNetworkManager.Instance?.localPlayerController?.currentlyHeldObjectServer?.GetComponent<AddonComponent>();
         if (addon == null || addon.isPassive) return;
 
         addon.ActivateAddonAbility();
