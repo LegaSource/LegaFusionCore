@@ -1,4 +1,4 @@
-﻿using LethalLib.Modules;
+﻿using LegaFusionCore.Managers;
 using System;
 using System.Collections.Generic;
 
@@ -10,14 +10,7 @@ public static class LFCSpawnableItemRegistry
 
     public static void Add(Type type, Item item, int minSpawn, int maxSpawn, int rarity, int value = 0)
     {
-        PhysicsProp script = item.spawnPrefab.AddComponent(type) as PhysicsProp;
-        script.grabbable = true;
-        script.grabbableToEnemies = true;
-        script.itemProperties = item;
-
-        NetworkPrefabs.RegisterNetworkPrefab(item.spawnPrefab);
-        LethalLib.Modules.Utilities.FixMixerGroups(item.spawnPrefab);
-        Items.RegisterItem(item);
+        LFCObjectsManager.RegisterObject(type, item);
         _ = spawnableItems.Add(new SpawnableItem(type, item, minSpawn, maxSpawn, rarity, value));
     }
     public static IReadOnlyCollection<SpawnableItem> GetAll() => spawnableItems;

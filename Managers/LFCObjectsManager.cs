@@ -2,7 +2,11 @@
 using LegaFusionCore.Managers.NetworkManagers;
 using LegaFusionCore.Registries;
 using LegaFusionCore.Utilities;
+using LethalLib.Modules;
+using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -10,6 +14,48 @@ namespace LegaFusionCore.Managers;
 
 public static class LFCObjectsManager
 {
+    public static void RegisterObject(Type type, Item item)
+    {
+        PhysicsProp script = item.spawnPrefab.AddComponent(type) as PhysicsProp;
+        script.grabbable = true;
+        script.grabbableToEnemies = true;
+        script.itemProperties = item;
+
+        LethalLib.Modules.NetworkPrefabs.RegisterNetworkPrefab(item.spawnPrefab);
+        LethalLib.Modules.Utilities.FixMixerGroups(item.spawnPrefab);
+        Items.RegisterItem(item);
+    }
+
+    public static void SpawnNewObject(RoundManager roundManager, Item itemToSpawn)
+    {
+        try
+        {
+            System.Random random = new System.Random();
+            List<RandomScrapSpawn> listRandomScrapSpawn = UnityEngine.Object.FindObjectsOfType<RandomScrapSpawn>().Where(s => !s.spawnUsed).ToList();
+
+            if (!listRandomScrapSpawn.Any()) return;
+
+            int indexRandomScrapSpawn = random.Next(0, listRandomScrapSpawn.Count);
+            RandomScrapSpawn randomScrapSpawn = listRandomScrapSpawn[indexRandomScrapSpawn];
+            if (randomScrapSpawn.spawnedItemsCopyPosition)
+            {
+                randomScrapSpawn.spawnUsed = true;
+                listRandomScrapSpawn.RemoveAt(indexRandomScrapSpawn);
+            }
+            else
+            {
+                randomScrapSpawn.transform.position = roundManager.GetRandomNavMeshPositionInBoxPredictable(randomScrapSpawn.transform.position, randomScrapSpawn.itemSpawnRange, roundManager.navHit, roundManager.AnomalyRandom) + (Vector3.up * itemToSpawn.verticalOffset);
+            }
+
+            Vector3 position = randomScrapSpawn.transform.position + (Vector3.up * 0.5f);
+            _ = SpawnObjectForServer(itemToSpawn.spawnPrefab, position);
+        }
+        catch (Exception arg)
+        {
+            LegaFusionCore.mls.LogError($"Error in SpawnNewItem: {arg}");
+        }
+    }
+
     public static GrabbableObject SpawnObjectForServer(GameObject spawnPrefab, Vector3 position)
         => SpawnObjectForServer(spawnPrefab, position, Quaternion.identity);
 
@@ -17,7 +63,7 @@ public static class LFCObjectsManager
     {
         if (!LFCUtilities.IsServer) return null;
 
-        GameObject gameObject = Object.Instantiate(spawnPrefab, position, rotation, StartOfRound.Instance.propsContainer);
+        GameObject gameObject = UnityEngine.Object.Instantiate(spawnPrefab, position, rotation, StartOfRound.Instance.propsContainer);
         GrabbableObject grabbableObject = gameObject.GetComponent<GrabbableObject>();
         grabbableObject.fallTime = 0f;
         gameObject.GetComponent<NetworkObject>().Spawn();

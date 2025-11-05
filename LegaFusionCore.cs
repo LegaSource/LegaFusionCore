@@ -18,7 +18,7 @@ public class LegaFusionCore : BaseUnityPlugin
 {
     public const string modGUID = "Lega.LegaFusionCore";
     public const string modName = "Lega Fusion Core";
-    public const string modVersion = "1.0.2";
+    public const string modVersion = "1.0.3";
 
     private readonly Harmony harmony = new Harmony(modGUID);
     private static readonly AssetBundle bundle = AssetBundle.LoadFromFile(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "legafusioncore"));
@@ -34,9 +34,14 @@ public class LegaFusionCore : BaseUnityPlugin
 
     // Particles
     public static GameObject smokeParticle;
+    public static GameObject darkExplosionParticle;
     public static GameObject bluePortalParticle;
     public static GameObject redPortalParticle;
     public static GameObject bloodParticle;
+
+    // Audios
+    public static GameObject darkExplosionAudio;
+    public static GameObject hitProjectileAudio;
 
     public void Awake()
     {
@@ -46,6 +51,7 @@ public class LegaFusionCore : BaseUnityPlugin
 
         LoadShaders();
         LoadParticles();
+        LoadAudios();
 
         harmony.PatchAll(typeof(StartOfRoundPatch));
         harmony.PatchAll(typeof(RoundManagerPatch));
@@ -91,8 +97,25 @@ public class LegaFusionCore : BaseUnityPlugin
         HashSet<GameObject> gameObjects =
         [
             (smokeParticle = bundle.LoadAsset<GameObject>("Assets/Particles/SmokeParticle.prefab")),
+            (darkExplosionParticle = bundle.LoadAsset<GameObject>("Assets/Particles/DarkExplosionParticle.prefab")),
             (bluePortalParticle = bundle.LoadAsset<GameObject>("Assets/Particles/BluePortalParticle.prefab")),
             (redPortalParticle = bundle.LoadAsset<GameObject>("Assets/Particles/RedPortalParticle.prefab"))
+        ];
+
+        foreach (GameObject gameObject in gameObjects)
+        {
+            NetworkPrefabs.RegisterNetworkPrefab(gameObject);
+            LethalLib.Modules.Utilities.FixMixerGroups(gameObject);
+            LFCPrefabRegistry.RegisterPrefab($"{modName}{gameObject.name}", gameObject);
+        }
+    }
+
+    public void LoadAudios()
+    {
+        HashSet<GameObject> gameObjects =
+        [
+            (darkExplosionAudio = bundle.LoadAsset<GameObject>("Assets/Audios/DarkExplosionAudio.prefab")),
+            (hitProjectileAudio = bundle.LoadAsset<GameObject>("Assets/Audios/HitProjectileAudio.prefab"))
         ];
 
         foreach (GameObject gameObject in gameObjects)

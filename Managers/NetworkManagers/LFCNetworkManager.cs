@@ -11,4 +11,7 @@ public partial class LFCNetworkManager : NetworkBehaviour
 
     [Rpc(SendTo.Everyone, RequireOwnership = false)]
     public void PlayParticleEveryoneRpc(string tag, Vector3 position, Quaternion rotation) => LFCGlobalManager.PlayParticle(tag, position, rotation);
+
+    [Rpc(SendTo.Everyone, RequireOwnership = false)]
+    public void PlayAudioEveryoneRpc(string tag, Vector3 position) => LFCGlobalManager.PlayAudio(tag, position);
 }
