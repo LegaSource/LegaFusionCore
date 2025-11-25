@@ -1,7 +1,8 @@
 ﻿using GameNetcodeStuff;
-using System.Collections.Generic;
+using System;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace LegaFusionCore.Behaviours.Shaders;
@@ -29,13 +30,66 @@ public class CustomPassManager : MonoBehaviour
         }
     }
 
-    public static void SetupAuraForObjects(GameObject[] objects, Material material, string tag, Color color = default)
+    private static Renderer[] GetFilteredRenderersFromObject(GameObject gObject)
     {
-        Renderer[] renderers = GetFilteredRenderersFromObjects(objects);
-        if (renderers.Length > 0) SetupCustomPass(renderers, material, tag, color);
+        Renderer[] renderers = gObject.GetComponentsInChildren<Renderer>().Where(r => r.shadowCastingMode != ShadowCastingMode.ShadowsOnly).ToArray();
+        if (renderers.Length == 0) return [];
+
+        if (gObject.TryGetComponent<EnemyAI>(out _) || gObject.TryGetComponent<PlayerControllerB>(out _))
+        {
+            renderers = renderers.Where(r => r is SkinnedMeshRenderer).ToArray();
+            renderers = GetFilteredSpecificRenderers(gObject, renderers);
+        }
+
+        if (renderers.Length == 0)
+        {
+            LegaFusionCore.mls.LogError($"No renderer could be found on {gObject.name}.");
+            return [];
+        }
+
+        return renderers;
     }
 
-    public static void SetupCustomPass(Renderer[] renderers, Material material, string tag, Color color)
+    private static Renderer[] GetFilteredSpecificRenderers(GameObject gObject, Renderer[] renderers)
+    {
+        Renderer[] filteredRenderers = renderers;
+
+        if (gObject.name.Contains(Constants.MOUTH_DOG_PREFAB, StringComparison.OrdinalIgnoreCase))
+        {
+            filteredRenderers = renderers
+                .Where(r => !r.name.Contains("LOD1", StringComparison.OrdinalIgnoreCase))
+                .ToArray();
+        }
+
+        return filteredRenderers;
+    }
+
+    private static Renderer GetBestSkinnedRenderer(GameObject gObject)
+    {
+        SkinnedMeshRenderer[] renderers = gObject.GetComponentsInChildren<SkinnedMeshRenderer>(true)
+        .Where(s => s.shadowCastingMode != ShadowCastingMode.ShadowsOnly)
+        .ToArray();
+        if (renderers.Length == 0) return null;
+
+        // Choisir le renderer le plus complexe visuellement
+        return renderers
+            .OrderByDescending(s => s.sharedMesh != null ? s.sharedMesh.vertexCount : 0)
+            .First();
+    }
+
+    public static void SetupAuraForObject(GameObject gObject, Material material, string tag, Color color = default)
+    {
+        Renderer[] renderers = GetFilteredRenderersFromObject(gObject);
+        if (renderers.Length > 0) SetupCustomPass(renderers, material, tag, color, gObject);
+    }
+
+    public static void SetupAuraForObjects(GameObject[] gObjects, Material material, string tag, Color color = default)
+    {
+        foreach (GameObject gObject in gObjects)
+            SetupAuraForObject(gObject, material, tag, color);
+    }
+
+    public static void SetupCustomPass(Renderer[] renderers, Material material, string tag, Color color, GameObject gObject)
     {
         if (CustomPassVolume == null)
         {
@@ -50,44 +104,22 @@ public class CustomPassManager : MonoBehaviour
             return;
         }
 
-        shaderCustomPass.AddRenderers(renderers, material, tag, color);
+        shaderCustomPass.AddRenderers(renderers, material, tag, color, gObject);
     }
 
-    public static void RemoveAuraFromObjects(GameObject[] objects, string tag = "default")
+    public static void RemoveAuraFromObject(GameObject gObject, string tag = "default")
     {
-        Renderer[] renderers = GetFilteredRenderersFromObjects(objects);
+        Renderer[] renderers = GetFilteredRenderersFromObject(gObject);
         if (renderers.Length > 0) shaderCustomPass?.RemoveRenderers(renderers, tag);
+    }
+
+    public static void RemoveAuraFromObjects(GameObject[] gObjects, string tag = "default")
+    {
+        foreach (GameObject gObject in gObjects)
+            RemoveAuraFromObject(gObject, tag);
     }
 
     public static void RemoveAuraByTag(string tag) => shaderCustomPass?.RemoveRenderersByTag(tag);
 
     public static void ClearAllAuras() => shaderCustomPass?.ClearAll();
-
-    private static Renderer[] GetFilteredRenderersFromObjects(GameObject[] objects)
-    {
-        List<Renderer> collectedRenderers = [];
-
-        foreach (GameObject obj in objects)
-        {
-            if (obj == null) continue;
-
-            List<Renderer> renderers = obj.GetComponentsInChildren<Renderer>().ToList();
-            if (renderers.Count == 0) continue;
-
-            if (obj.TryGetComponent<EnemyAI>(out _) || obj.TryGetComponent<PlayerControllerB>(out _))
-            {
-                renderers = renderers.Where(r => r is SkinnedMeshRenderer).ToList();
-            }
-
-            if (renderers.Count == 0)
-            {
-                LegaFusionCore.mls.LogError($"No renderer could be found on {obj.name}.");
-                continue;
-            }
-
-            collectedRenderers.AddRange(renderers);
-        }
-
-        return collectedRenderers.ToArray();
-    }
 }

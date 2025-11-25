@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using LegaFusionCore.Registries;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
@@ -7,9 +8,9 @@ namespace LegaFusionCore.Behaviours.Shaders;
 
 public class ShaderCustomPass : CustomPass
 {
-    private readonly Dictionary<string, Dictionary<Renderer, (Material, Color)>> targetRenderers = [];
+    private readonly Dictionary<string, Dictionary<Renderer, (Material, Color, GameObject sourceObject)>> targetRenderers = [];
 
-    public void AddRenderers(Renderer[] renderers, Material material, string tag, Color color)
+    public void AddRenderers(Renderer[] renderers, Material material, string tag, Color color, GameObject sourceObject)
     {
         if (string.IsNullOrEmpty(tag)) tag = "default";
         if (!targetRenderers.ContainsKey(tag)) targetRenderers[tag] = [];
@@ -17,7 +18,7 @@ public class ShaderCustomPass : CustomPass
         foreach (Renderer renderer in renderers)
         {
             if (renderer == null || targetRenderers[tag].ContainsKey(renderer)) continue;
-            targetRenderers[tag].Add(renderer, (material, color));
+            targetRenderers[tag].Add(renderer, (material, color, sourceObject));
         }
     }
 
@@ -41,7 +42,7 @@ public class ShaderCustomPass : CustomPass
     {
         if (string.IsNullOrEmpty(tag) || !targetRenderers.ContainsKey(tag)) return;
 
-        foreach (KeyValuePair<Renderer, (Material, Color)> kvp in targetRenderers[tag].ToList())
+        foreach (KeyValuePair<Renderer, (Material, Color, GameObject sourceObject)> kvp in targetRenderers[tag].ToList())
         {
             if (kvp.Key == null) continue;
             kvp.Key.SetPropertyBlock(new MaterialPropertyBlock());
@@ -56,14 +57,13 @@ public class ShaderCustomPass : CustomPass
     {
         if (targetRenderers.Count == 0) return;
 
-        foreach (KeyValuePair<string, Dictionary<Renderer, (Material, Color)>> kvpTag in targetRenderers)
+        foreach (KeyValuePair<string, Dictionary<Renderer, (Material, Color, GameObject sourceObject)>> kvpTag in targetRenderers)
         {
-            foreach (KeyValuePair<Renderer, (Material, Color)> kvpRenderer in kvpTag.Value)
+            foreach (KeyValuePair<Renderer, (Material, Color, GameObject sourceObject)> kvpRenderer in kvpTag.Value)
             {
                 Renderer renderer = kvpRenderer.Key;
-                (Material material, Color color) = kvpRenderer.Value;
-
-                if (renderer == null || material == null) continue;
+                (Material material, Color color, GameObject sourceObject) = kvpRenderer.Value;
+                if (renderer == null || !renderer.enabled || material == null || !LFCShaderFilterRegistry.ShouldRender(sourceObject)) continue;
 
                 if (material.HasProperty("_BaseColor"))
                 {
@@ -73,7 +73,9 @@ public class ShaderCustomPass : CustomPass
                     renderer.SetPropertyBlock(block);
                 }
 
-                ctx.cmd.DrawRenderer(renderer, material, 0, 0);
+                int subMeshCount = renderer.sharedMaterials.Length;
+                for (int i = 0; i < subMeshCount; i++)
+                    ctx.cmd.DrawRenderer(renderer, material, i, 0);
             }
         }
     }

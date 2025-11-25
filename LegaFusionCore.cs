@@ -18,7 +18,7 @@ public class LegaFusionCore : BaseUnityPlugin
 {
     public const string modGUID = "Lega.LegaFusionCore";
     public const string modName = "Lega Fusion Core";
-    public const string modVersion = "1.0.3";
+    public const string modVersion = "1.0.4";
 
     private readonly Harmony harmony = new Harmony(modGUID);
     private static readonly AssetBundle bundle = AssetBundle.LoadFromFile(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "legafusioncore"));
@@ -56,6 +56,12 @@ public class LegaFusionCore : BaseUnityPlugin
         harmony.PatchAll(typeof(StartOfRoundPatch));
         harmony.PatchAll(typeof(RoundManagerPatch));
         harmony.PatchAll(typeof(NetworkBehaviourPatch));
+        harmony.PatchAll(typeof(HangarShipDoorPatch));
+        harmony.PatchAll(typeof(ItemChargerPatch));
+        harmony.PatchAll(typeof(ManualCameraRendererPatch));
+        harmony.PatchAll(typeof(ShipLightsPatch));
+        harmony.PatchAll(typeof(ShipTeleporterPatch));
+        harmony.PatchAll(typeof(TVScriptPatch));
         harmony.PatchAll(typeof(PlayerControllerBPatch));
         harmony.PatchAll(typeof(GrabbableObjectPatch));
         harmony.PatchAll(typeof(EnemyAIPatch));
