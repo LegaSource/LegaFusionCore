@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace LegaFusionCore.Registries;
@@ -32,6 +33,17 @@ public static class LFCPoweredLightsRegistry
             // Si plus aucun tag -> on réactive l’action
             if (tagSet.Count == 0)
                 SetPoweredLightEnabled(poweredLight, true);
+        }
+    }
+
+    public static void ClearLocks()
+    {
+        foreach (Animator poweredLight in lockRegistry.Keys.ToList())
+        {
+            if (!lockRegistry.TryGetValue(poweredLight, out HashSet<string> tagSet)) continue;
+
+            tagSet.ToList().ForEach(t => RemoveLock(poweredLight, t));
+            _ = lockRegistry.Remove(poweredLight);
         }
     }
 

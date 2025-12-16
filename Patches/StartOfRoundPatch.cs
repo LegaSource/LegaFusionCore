@@ -29,23 +29,27 @@ public class StartOfRoundPatch
 
     public static void LoadVanillaPrefabs()
     {
-        GameObject gameObject = LFCUtilities.GetPrefabFromName(Constants.KNIFE_ITEM);
-        if (gameObject != null)
-        {
-            GameObject tempInstance = Object.Instantiate(gameObject);
-            tempInstance.SetActive(false);
+        LegaFusionCore.bloodParticle = LoadVanillaParticle(Constants.KNIFE_PREFAB, "BloodParticle");
+        LegaFusionCore.groundParticle = LoadVanillaParticle(Constants.EARTH_LEVIATHAN_PREFAB, "AppearFromGround1");
+    }
 
-            ParticleSystem ps = tempInstance.GetComponentInChildren<ParticleSystem>(true);
-            if (ps != null)
-            {
-                LegaFusionCore.bloodParticle = Object.Instantiate(ps.gameObject);
-                LegaFusionCore.bloodParticle.SetActive(false);
-                Object.DontDestroyOnLoad(LegaFusionCore.bloodParticle);
-            }
+    public static GameObject LoadVanillaParticle(string prefabName, string particleName)
+    {
+        GameObject prefab = LFCUtilities.GetPrefabFromName(prefabName);
+        if (prefab == null) return null;
 
-            Object.Destroy(tempInstance);
-            LFCPrefabRegistry.RegisterPrefab($"{LegaFusionCore.modName}{LegaFusionCore.bloodParticle.name}", LegaFusionCore.bloodParticle);
-        }
+        ParticleSystem particleSystem = prefab
+            .GetComponentsInChildren<ParticleSystem>(true)
+            .FirstOrDefault(p => p.gameObject.name.Equals(particleName));
+        if (particleSystem == null) return null;
+
+        GameObject particle = Object.Instantiate(particleSystem.gameObject);
+        particle.name = particleSystem.gameObject.name;
+        particle.SetActive(false);
+        Object.DontDestroyOnLoad(particle);
+
+        LFCPrefabRegistry.RegisterPrefab($"{LegaFusionCore.modName}{particle.name}", particle);
+        return particle;
     }
 
     [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.ShipLeave))]
@@ -53,6 +57,10 @@ public class StartOfRoundPatch
     public static void EndRound()
     {
         LFCStatusEffectRegistry.ClearStatus();
+        LFCShipFeatureRegistry.ClearLocks();
+        LFCPoweredLightsRegistry.ClearLocks();
+        LFCObjectStateRegistry.ClearFlickeringFlashlight();
+
         foreach (AddonComponent addonComponent in Object.FindObjectsOfType<GrabbableObject>().Select(g => g.GetComponent<AddonComponent>()))
         {
             if (addonComponent == null) continue;

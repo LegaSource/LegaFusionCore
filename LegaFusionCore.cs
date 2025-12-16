@@ -38,6 +38,7 @@ public class LegaFusionCore : BaseUnityPlugin
     public static GameObject bluePortalParticle;
     public static GameObject redPortalParticle;
     public static GameObject bloodParticle;
+    public static GameObject groundParticle;
 
     // Audios
     public static GameObject darkExplosionAudio;

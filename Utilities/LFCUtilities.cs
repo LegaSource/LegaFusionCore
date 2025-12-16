@@ -1,5 +1,6 @@
 ﻿using GameNetcodeStuff;
 using LegaFusionCore.Behaviours.Addons;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Netcode;
@@ -17,31 +18,42 @@ public static class LFCUtilities
     {
         for (int i = list.Count - 1; i > 0; i--)
         {
-            int randomIndex = Random.Range(0, i + 1);
+            int randomIndex = UnityEngine.Random.Range(0, i + 1);
             (list[randomIndex], list[i]) = (list[i], list[randomIndex]);
+        }
+    }
+
+    public static void UpdateTimer(ref float timer, float cooldown, bool isActive, Action onReady)
+    {
+        if (isActive)
+        {
+            timer += Time.deltaTime;
+            if (timer >= cooldown)
+            {
+                timer = 0f;
+                onReady?.Invoke();
+            }
         }
     }
 
     public static GameObject GetPrefabFromName(string name)
     {
-        GameObject item = null;
+        GameObject prefab = null;
         foreach (NetworkPrefabsList networkPrefabList in NetworkManager.Singleton.NetworkConfig.Prefabs.NetworkPrefabsLists ?? Enumerable.Empty<NetworkPrefabsList>())
         {
             foreach (NetworkPrefab networkPrefab in networkPrefabList.PrefabList ?? Enumerable.Empty<NetworkPrefab>())
             {
-                GrabbableObject grabbableObject = networkPrefab.Prefab.GetComponent<GrabbableObject>();
-                if (grabbableObject == null || grabbableObject.itemProperties == null) continue;
-                if (!grabbableObject.itemProperties.itemName.Equals(name)) continue;
+                if (!networkPrefab.Prefab.name.Equals(name)) continue;
 
-                item = networkPrefab.Prefab;
-                if (item != null) break;
+                prefab = networkPrefab.Prefab;
+                if (prefab != null) break;
             }
         }
-        return item;
+        return prefab;
     }
 
     public static T GetSafeComponent<T>(GameObject gameObject) where T : Component
-        => gameObject == null || gameObject is not Object obj || !obj ? null : gameObject.GetComponent<T>();
+        => gameObject == null || gameObject is not UnityEngine.Object obj || !obj ? null : gameObject.GetComponent<T>();
 
     public static void SetAddonComponent<T>(GrabbableObject grabbableObject, string addonName, bool isPassive = false) where T : AddonComponent
     {

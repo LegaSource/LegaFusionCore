@@ -8,11 +8,11 @@ public static class LFCSpawnRegistry
 {
     private static readonly Dictionary<Type, HashSet<Component>> registry = [];
 
-    public static void Add<T>(T obj) where T : Component
+    public static void Add(Component obj)
     {
         if (obj == null) return;
 
-        Type type = typeof(T);
+        Type type = obj.GetType();
         if (!registry.TryGetValue(type, out HashSet<Component> set))
         {
             set = [];
@@ -23,11 +23,11 @@ public static class LFCSpawnRegistry
             _ = set.Add(obj);
     }
 
-    public static void Remove<T>(T obj) where T : Component
+    public static void Remove(Component obj)
     {
         if (obj == null) return;
 
-        Type type = typeof(T);
+        Type type = obj.GetType();
         if (registry.TryGetValue(type, out HashSet<Component> set))
             _ = set.RemoveWhere(c => c == null || c == obj);
     }
@@ -47,6 +47,9 @@ public static class LFCSpawnRegistry
         }
         return result;
     }
+
+    public static HashSet<Component> GetSetExact<T>() where T : Component
+        => registry.TryGetValue(typeof(T), out HashSet<Component> set) ? set : null;
 
     public static void Clear() => registry.Clear();
 }

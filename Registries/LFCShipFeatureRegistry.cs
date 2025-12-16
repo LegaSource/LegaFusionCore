@@ -55,6 +55,24 @@ public static class LFCShipFeatureRegistry
         }
     }
 
+    public static void ClearLocks(string tag)
+    {
+        foreach (ShipFeatureType featureType in lockRegistry.Keys.ToList())
+        {
+            if (lockRegistry.TryGetValue(featureType, out HashSet<string> tagSet) && tagSet.Contains(tag))
+                RemoveLock(featureType, tag);
+        }
+    }
+
+    public static void ClearLocks()
+    {
+        foreach (ShipFeatureType featureType in lockRegistry.Keys.ToList())
+        {
+            if (lockRegistry.TryGetValue(featureType, out HashSet<string> tagSet))
+                tagSet.ToList().ForEach(t => RemoveLock(featureType, t));
+        }
+    }
+
     public static bool IsLocked(ShipFeatureType featureType) => lockRegistry.TryGetValue(featureType, out HashSet<string> tagSet) && tagSet.Count > 0;
 
     private static void SetFeatureEnabled(ShipFeatureType featureType, bool enabled)

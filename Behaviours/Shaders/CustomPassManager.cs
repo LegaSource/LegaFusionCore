@@ -64,19 +64,6 @@ public class CustomPassManager : MonoBehaviour
         return filteredRenderers;
     }
 
-    private static Renderer GetBestSkinnedRenderer(GameObject gObject)
-    {
-        SkinnedMeshRenderer[] renderers = gObject.GetComponentsInChildren<SkinnedMeshRenderer>(true)
-        .Where(s => s.shadowCastingMode != ShadowCastingMode.ShadowsOnly)
-        .ToArray();
-        if (renderers.Length == 0) return null;
-
-        // Choisir le renderer le plus complexe visuellement
-        return renderers
-            .OrderByDescending(s => s.sharedMesh != null ? s.sharedMesh.vertexCount : 0)
-            .First();
-    }
-
     public static void SetupAuraForObject(GameObject gObject, Material material, string tag, Color color = default)
     {
         Renderer[] renderers = GetFilteredRenderersFromObject(gObject);

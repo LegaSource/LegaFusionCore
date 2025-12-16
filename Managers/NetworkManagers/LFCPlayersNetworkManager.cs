@@ -27,16 +27,18 @@ public partial class LFCNetworkManager
     }
 
     [Rpc(SendTo.Everyone, RequireOwnership = false)]
-    public void DamagePlayerEveryoneRpc(int playerId, int damageNumber)
+    public void DamagePlayerEveryoneRpc(int playerId, int damageNumber, bool hasDamageSFX = true, bool callRPC = true, int causeOfDeath = (int)CauseOfDeath.Unknown)
     {
         PlayerControllerB player = StartOfRound.Instance.allPlayerObjects[playerId].GetComponent<PlayerControllerB>();
-        if (LFCUtilities.ShouldBeLocalPlayer(player)) player.DamagePlayer(damageNumber, hasDamageSFX: true, callRPC: true, CauseOfDeath.Unknown);
+        if (LFCUtilities.ShouldBeLocalPlayer(player))
+            player.DamagePlayer(damageNumber, hasDamageSFX, callRPC, (CauseOfDeath)causeOfDeath);
     }
 
     [Rpc(SendTo.Everyone, RequireOwnership = false)]
     public void KillPlayerEveryoneRpc(int playerId, Vector3 velocity, bool spawnBody, int causeOfDeath)
     {
         PlayerControllerB player = StartOfRound.Instance.allPlayerObjects[playerId].GetComponent<PlayerControllerB>();
-        if (LFCUtilities.ShouldBeLocalPlayer(player)) player.KillPlayer(velocity, spawnBody, (CauseOfDeath)causeOfDeath);
+        if (LFCUtilities.ShouldBeLocalPlayer(player))
+            player.KillPlayer(velocity, spawnBody, (CauseOfDeath)causeOfDeath);
     }
 }
