@@ -115,6 +115,52 @@ public static class LFCObjectsManager
         }
     }
 
+    public static void DropHeldItem(this GrabbableObject grabbableObject, PlayerControllerB player, bool itemsFall = true, bool disconnecting = false)
+    {
+        if (itemsFall)
+        {
+            grabbableObject.parentObject = null;
+            grabbableObject.heldByPlayerOnServer = false;
+            if (player.isInElevator)
+                grabbableObject.transform.SetParent(player.playersManager.elevatorTransform, worldPositionStays: true);
+            else
+                grabbableObject.transform.SetParent(player.playersManager.propsContainer, worldPositionStays: true);
+            player.SetItemInElevator(player.isInHangarShipRoom, player.isInElevator, grabbableObject);
+            grabbableObject.EnablePhysics(enable: true);
+            grabbableObject.EnableItemMeshes(enable: true);
+            grabbableObject.transform.localScale = grabbableObject.originalScale;
+            grabbableObject.isHeld = false;
+            grabbableObject.isPocketed = false;
+            grabbableObject.startFallingPosition = grabbableObject.transform.parent.InverseTransformPoint(grabbableObject.transform.position);
+            grabbableObject.FallToGround(randomizePosition: true);
+            grabbableObject.fallTime = UnityEngine.Random.Range(-0.3f, 0.05f);
+            if (LFCUtilities.ShouldBeLocalPlayer(player))
+                grabbableObject.DiscardItemOnClient();
+            else if (!grabbableObject.itemProperties.syncDiscardFunction)
+                grabbableObject.playerHeldBy = null;
+        }
+        if (LFCUtilities.ShouldBeLocalPlayer(player) && !disconnecting)
+        {
+            HUDManager.Instance.holdingTwoHandedItem.enabled = false;
+            HUDManager.Instance.itemSlotIcons[player.currentItemSlot].enabled = false;
+            HUDManager.Instance.ClearControlTips();
+            player.activatingItem = false;
+        }
+        player.ItemSlots[player.currentItemSlot] = null;
+        if (player.isHoldingObject)
+        {
+            player.isHoldingObject = false;
+            if (player.currentlyHeldObjectServer != null)
+                player.SetSpecialGrabAnimationBool(setTrue: false, player.currentlyHeldObjectServer);
+            player.playerBodyAnimator.SetBool("cancelHolding", value: true);
+            player.playerBodyAnimator.SetTrigger("Throw");
+        }
+        player.activatingItem = false;
+        player.twoHanded = false;
+        player.carryWeight = 1f;
+        player.currentlyHeldObjectServer = null;
+    }
+
     public static void DestroyObjectsOfTypeAllForServer<T>() where T : GrabbableObject
         => LFCSpawnRegistry.GetAllAs<GrabbableObject>().ForEach(g => { if (g is T o) DestroyObjectOfTypeForServer(o); });
 

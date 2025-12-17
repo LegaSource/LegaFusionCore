@@ -26,6 +26,20 @@ public partial class LFCNetworkManager
     }
 
     [Rpc(SendTo.Everyone, RequireOwnership = false)]
+    public void ForceDiscardObjectEveryoneRpc(NetworkObjectReference obj, int playerId)
+    {
+        if (!obj.TryGet(out NetworkObject networkObject)) return;
+
+        PlayerControllerB player = StartOfRound.Instance.allPlayerObjects[playerId].GetComponent<PlayerControllerB>();
+        if (player.currentlyHeldObjectServer != null)
+        {
+            GrabbableObject grabbableObject = networkObject.gameObject.GetComponentInChildren<GrabbableObject>();
+            if (grabbableObject != null && grabbableObject == player.currentlyHeldObjectServer)
+                grabbableObject.DropHeldItem(player);
+        }
+    }
+
+    [Rpc(SendTo.Everyone, RequireOwnership = false)]
     public void DestroyObjectEveryoneRpc(NetworkObjectReference obj)
     {
         if (!obj.TryGet(out NetworkObject networkObject)) return;
