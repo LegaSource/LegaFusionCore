@@ -25,7 +25,6 @@ public class AddonInput : LcInputActions
     public InputAction AddonKey { get; set; }
 
     public void EnableInput() => AddonKey.performed += ActivateAddonAbility;
-
     public void DisableInput() => AddonKey.performed -= ActivateAddonAbility;
 
     public void ActivateAddonAbility(InputAction.CallbackContext context)

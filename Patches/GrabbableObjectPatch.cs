@@ -13,10 +13,13 @@ public class GrabbableObjectPatch
     private static void SetAddonScanNode(ref GrabbableObject __instance)
     {
         AddonComponent addonComponent = __instance.gameObject.GetComponent<AddonComponent>();
-        if (addonComponent == null) return;
-
-        ScanNodeProperties scanNode = __instance.gameObject.GetComponentInChildren<ScanNodeProperties>();
-        if (scanNode != null) scanNode.subText += (scanNode.subText != null ? "\n" : "") + "Addon: " + addonComponent.addonName;
+        if (addonComponent != null)
+        {
+            ScanNodeProperties scanNode = __instance.gameObject.GetComponentInChildren<ScanNodeProperties>();
+            string addonText = "Addon: " + addonComponent.addonName;
+            if (scanNode != null && (scanNode.subText == null || !scanNode.subText.Contains(addonText)))
+                scanNode.subText += (scanNode.subText != null ? "\n" : "") + addonText;
+        }
     }
 
     [HarmonyPatch(typeof(GrabbableObject), nameof(GrabbableObject.GrabItem))]

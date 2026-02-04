@@ -15,11 +15,12 @@ public class RoundManagerPatch
     [HarmonyPostfix]
     private static void SpawnNewItems(ref RoundManager __instance)
     {
+        System.Random random = new System.Random();
         foreach (SpawnableItem spawnableItem in GetAll())
         {
             for (int i = 0; i < spawnableItem.MaxSpawn; i++)
             {
-                if (i < spawnableItem.MinSpawn || new System.Random().Next(1, 100) <= spawnableItem.Rarity)
+                if (i < spawnableItem.MinSpawn || random.Next(0, 100) <= spawnableItem.Rarity)
                     LFCObjectsManager.SpawnNewObject(__instance, spawnableItem.Item);
             }
         }

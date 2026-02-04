@@ -24,6 +24,12 @@ public static class LFCGlobalManager
         particleObject.SetActive(active);
 
         ParticleSystem particleSystem = particleObject.GetComponent<ParticleSystem>();
+        if (particleSystem == null)
+        {
+            LegaFusionCore.mls.LogWarning($"[PlayParticle] Prefab {prefab.name} has no ParticleSystem.");
+            Object.Destroy(particleObject);
+            return;
+        }
         MainModule main = particleSystem.main;
 
         if (scaleFactor != 1f)
@@ -70,7 +76,7 @@ public static class LFCGlobalManager
         AudioSource audioSource = audioObject.GetComponent<AudioSource>();
         if (audioSource == null || audioSource.clip == null)
         {
-            LegaFusionCore.mls.LogWarning($"[PlayAudio] The prefab {prefab.name} does not have an AudioSource or clip assigned to it.");
+            LegaFusionCore.mls.LogWarning($"[PlayAudio] Prefab {prefab.name} has no AudioSource or clip.");
             Object.Destroy(audioObject);
             return;
         }

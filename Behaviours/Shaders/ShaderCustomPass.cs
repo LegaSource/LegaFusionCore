@@ -45,7 +45,7 @@ public class ShaderCustomPass : CustomPass
         foreach (KeyValuePair<Renderer, (Material, Color, GameObject sourceObject)> kvp in targetRenderers[tag].ToList())
         {
             if (kvp.Key == null) continue;
-            kvp.Key.SetPropertyBlock(new MaterialPropertyBlock());
+            kvp.Key.SetPropertyBlock(null);
         }
 
         _ = targetRenderers.Remove(tag);

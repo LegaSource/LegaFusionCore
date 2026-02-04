@@ -20,17 +20,20 @@ public class StartOfRoundPatch
         LoadVanillaPrefabs();
         AddonInput.Instance.EnableInput();
 
-        if (!NetworkManager.Singleton.IsHost || LFCNetworkManager.Instance != null) return;
-
-        GameObject gameObject = Object.Instantiate(LegaFusionCore.managerPrefab, __instance.transform.parent);
-        gameObject.GetComponent<NetworkObject>().Spawn();
-        LegaFusionCore.mls.LogInfo("Spawning LFCNetworkManager");
+        if (NetworkManager.Singleton.IsHost && LFCNetworkManager.Instance == null)
+        {
+            GameObject gameObject = Object.Instantiate(LegaFusionCore.managerPrefab, __instance.transform.parent);
+            gameObject.GetComponent<NetworkObject>().Spawn();
+            LegaFusionCore.mls.LogInfo("Spawning LFCNetworkManager");
+        }
     }
 
     public static void LoadVanillaPrefabs()
     {
-        LegaFusionCore.bloodParticle = LoadVanillaParticle(Constants.KNIFE_PREFAB, "BloodParticle");
-        LegaFusionCore.groundParticle = LoadVanillaParticle(Constants.EARTH_LEVIATHAN_PREFAB, "AppearFromGround1");
+        if (LegaFusionCore.bloodParticle == null)
+            LegaFusionCore.bloodParticle = LoadVanillaParticle(Constants.KNIFE_PREFAB, "BloodParticle");
+        if (LegaFusionCore.groundParticle == null)
+            LegaFusionCore.groundParticle = LoadVanillaParticle(Constants.EARTH_LEVIATHAN_PREFAB, "AppearFromGround1");
     }
 
     public static GameObject LoadVanillaParticle(string prefabName, string particleName)
@@ -72,6 +75,7 @@ public class StartOfRoundPatch
     [HarmonyPostfix]
     public static void OnDisable()
     {
+        AddonInput.Instance.DisableInput();
         LFCNetworkManager.Instance = null;
         LFCSpawnRegistry.Clear();
     }

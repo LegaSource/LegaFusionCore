@@ -30,8 +30,8 @@ public static class LFCMapObjectsManager
         List<Vector3> selectedPositions = [];
         StartOfRound.Instance.allPlayerScripts.Where(p => !p.isPlayerDead).ToList().ForEach(p => selectedPositions.Add(p.transform.position));
 
-        List<GameObject> insideNodes = RoundManager.Instance.insideAINodes.Where(n => n != null).ToList() ?? [];
-        List<GameObject> outsideNodes = RoundManager.Instance.outsideAINodes.Where(n => n != null).ToList() ?? [];
+        List<GameObject> insideNodes = RoundManager.Instance.insideAINodes.Where(n => n != null).ToList();
+        List<GameObject> outsideNodes = RoundManager.Instance.outsideAINodes.Where(n => n != null).ToList();
 
         LFCUtilities.Shuffle(insideNodes);
         LFCUtilities.Shuffle(outsideNodes);

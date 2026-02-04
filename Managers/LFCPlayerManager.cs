@@ -8,7 +8,7 @@ public static class LFCPlayerManager
 {
     public static void HealPlayerOnLocalClient(PlayerControllerB player, int regenHP)
     {
-        if (LFCUtilities.ShouldBeLocalPlayer(player) && player.isPlayerDead)
+        if (LFCUtilities.ShouldBeLocalPlayer(player) && !player.isPlayerDead)
         {
             player.health = Mathf.Min(player.health + regenHP, 100);
             HUDManager.Instance.UpdateHealthUI(player.health, hurtPlayer: false);
