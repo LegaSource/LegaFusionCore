@@ -19,26 +19,29 @@ public static class LFCEnemyManager
         return enemy.enemyType.canDie && !enemiesNotTagged.Contains(enemy.enemyType.enemyName);
     }
 
-    public static bool FoundClosestPlayerInRange(this EnemyAI enemy, int range, int senseRange, float width = 60f)
+    public static bool FoundClosestPlayerInRange(this EnemyAI enemy, int range, int senseRange, float width = 60f, bool cannotBeInShip = false)
     {
         PlayerControllerB player = enemy.CheckLineOfSightForPlayer(width, range, senseRange);
-        return player != null && enemy.PlayerIsTargetable(player) && (bool)(enemy.targetPlayer = player);
+        return player != null && enemy.PlayerIsTargetable(player, cannotBeInShip) && (bool)(enemy.targetPlayer = player);
     }
 
-    public static bool TargetClosestPlayerInAnyCase(this EnemyAI enemy)
+    public static bool TargetClosestPlayerInAnyCase(this EnemyAI enemy, out float distance, bool cannotBeInShip = false)
     {
         enemy.mostOptimalDistance = 2000f;
+        distance = enemy.mostOptimalDistance;
         enemy.targetPlayer = null;
         for (int i = 0; i < StartOfRound.Instance.connectedPlayersAmount + 1; i++)
         {
             PlayerControllerB player = StartOfRound.Instance.allPlayerScripts[i];
-            if (!enemy.PlayerIsTargetable(player)) continue;
-
-            enemy.tempDist = Vector3.Distance(enemy.transform.position, StartOfRound.Instance.allPlayerScripts[i].transform.position);
-            if (enemy.tempDist < enemy.mostOptimalDistance)
+            if (enemy.PlayerIsTargetable(player, cannotBeInShip))
             {
-                enemy.mostOptimalDistance = enemy.tempDist;
-                enemy.targetPlayer = StartOfRound.Instance.allPlayerScripts[i];
+                enemy.tempDist = Vector3.Distance(enemy.transform.position, StartOfRound.Instance.allPlayerScripts[i].transform.position);
+                if (enemy.tempDist < enemy.mostOptimalDistance)
+                {
+                    distance = enemy.tempDist;
+                    enemy.mostOptimalDistance = enemy.tempDist;
+                    enemy.targetPlayer = StartOfRound.Instance.allPlayerScripts[i];
+                }
             }
         }
         return enemy.targetPlayer != null;

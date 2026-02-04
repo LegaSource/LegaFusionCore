@@ -35,7 +35,7 @@ public partial class LFCNetworkManager
         {
             GrabbableObject grabbableObject = networkObject.gameObject.GetComponentInChildren<GrabbableObject>();
             if (grabbableObject != null && grabbableObject == player.currentlyHeldObjectServer)
-                grabbableObject.DropHeldItem(player);
+                grabbableObject.DropHeldObject(player);
         }
     }
 

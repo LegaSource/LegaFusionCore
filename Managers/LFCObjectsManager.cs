@@ -14,16 +14,21 @@ namespace LegaFusionCore.Managers;
 
 public static class LFCObjectsManager
 {
-    public static void RegisterObject(Type type, Item item)
+    public static Item RegisterObject(Type type, Item item)
     {
-        PhysicsProp script = item.spawnPrefab.AddComponent(type) as PhysicsProp;
-        script.grabbable = true;
-        script.grabbableToEnemies = true;
-        script.itemProperties = item;
+        if (item.spawnPrefab.GetComponent(type) == null)
+        {
+            PhysicsProp script = item.spawnPrefab.AddComponent(type) as PhysicsProp;
+            script.grabbable = true;
+            script.grabbableToEnemies = true;
+            script.itemProperties = item;
+        }
 
         LethalLib.Modules.NetworkPrefabs.RegisterNetworkPrefab(item.spawnPrefab);
         LethalLib.Modules.Utilities.FixMixerGroups(item.spawnPrefab);
         Items.RegisterItem(item);
+
+        return item;
     }
 
     public static void SpawnNewObject(RoundManager roundManager, Item itemToSpawn)
@@ -61,12 +66,14 @@ public static class LFCObjectsManager
 
     public static GrabbableObject SpawnObjectForServer(GameObject spawnPrefab, Vector3 position, Quaternion rotation)
     {
-        if (!LFCUtilities.IsServer) return null;
-
-        GameObject gameObject = UnityEngine.Object.Instantiate(spawnPrefab, position, rotation, StartOfRound.Instance.propsContainer);
-        GrabbableObject grabbableObject = gameObject.GetComponent<GrabbableObject>();
-        grabbableObject.fallTime = 0f;
-        gameObject.GetComponent<NetworkObject>().Spawn();
+        GrabbableObject grabbableObject = null;
+        if (LFCUtilities.IsServer)
+        {
+            GameObject gameObject = UnityEngine.Object.Instantiate(spawnPrefab, position, rotation, StartOfRound.Instance.propsContainer);
+            grabbableObject = gameObject.GetComponent<GrabbableObject>();
+            grabbableObject.fallTime = 0f;
+            gameObject.GetComponent<NetworkObject>().Spawn();
+        }
         return grabbableObject;
     }
 
@@ -115,7 +122,7 @@ public static class LFCObjectsManager
         }
     }
 
-    public static void DropHeldItem(this GrabbableObject grabbableObject, PlayerControllerB player, bool itemsFall = true, bool disconnecting = false)
+    public static void DropHeldObject(this GrabbableObject grabbableObject, PlayerControllerB player, bool itemsFall = true, bool disconnecting = false)
     {
         if (itemsFall)
         {

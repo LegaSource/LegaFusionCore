@@ -10,7 +10,7 @@ public static class LFCSpawnableItemRegistry
 
     public static void Add(Type type, Item item, int minSpawn, int maxSpawn, int rarity, int value = 0)
     {
-        LFCObjectsManager.RegisterObject(type, item);
+        _ = LFCObjectsManager.RegisterObject(type, item);
         _ = spawnableItems.Add(new SpawnableItem(type, item, minSpawn, maxSpawn, rarity, value));
     }
     public static IReadOnlyCollection<SpawnableItem> GetAll() => spawnableItems;

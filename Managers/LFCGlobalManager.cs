@@ -6,7 +6,7 @@ namespace LegaFusionCore.Managers;
 
 public static class LFCGlobalManager
 {
-    public static void PlayParticle(string tag, Vector3 position, Quaternion rotation, float scaleFactor = 1f)
+    public static void PlayParticle(string tag, Vector3 position, Quaternion rotation, float scaleFactor = 1f, bool active = true)
     {
         GameObject prefab = LFCPrefabRegistry.GetPrefab(tag);
         if (prefab == null)
@@ -14,10 +14,14 @@ public static class LFCGlobalManager
             LegaFusionCore.mls.LogWarning($"[PlayParticle] No prefab found for the tag: {tag}");
             return;
         }
+        PlayParticle(prefab, position, rotation, scaleFactor, active);
+    }
 
+    public static void PlayParticle(GameObject prefab, Vector3 position, Quaternion rotation, float scaleFactor = 1f, bool active = true)
+    {
         GameObject particleObject = Object.Instantiate(prefab, position, rotation);
         particleObject.transform.localScale = prefab.transform.localScale * scaleFactor;
-        particleObject.SetActive(true);
+        particleObject.SetActive(active);
 
         ParticleSystem particleSystem = particleObject.GetComponent<ParticleSystem>();
         MainModule main = particleSystem.main;
@@ -46,10 +50,10 @@ public static class LFCGlobalManager
         }
 
         if (!particleSystem.main.playOnAwake) particleSystem.Play();
-        Object.Destroy(particleObject, particleSystem.main.duration + particleSystem.main.startLifetime.constantMax);
+        Object.Destroy(particleObject, particleSystem.main.duration);
     }
 
-    public static void PlayAudio(string tag, Vector3 position)
+    public static void PlayAudio(string tag, Vector3 position, bool active = true)
     {
         GameObject prefab = LFCPrefabRegistry.GetPrefab(tag);
         if (prefab == null)
@@ -57,15 +61,20 @@ public static class LFCGlobalManager
             LegaFusionCore.mls.LogWarning($"[PlayAudio] No prefab found for the tag: {tag}");
             return;
         }
+        PlayAudio(prefab, position, active);
+    }
 
+    public static void PlayAudio(GameObject prefab, Vector3 position, bool active = true)
+    {
         GameObject audioObject = Object.Instantiate(prefab, position, Quaternion.identity);
         AudioSource audioSource = audioObject.GetComponent<AudioSource>();
         if (audioSource == null || audioSource.clip == null)
         {
-            LegaFusionCore.mls.LogWarning($"[PlayAudio] The prefab {tag} does not have an AudioSource or clip assigned to it.");
+            LegaFusionCore.mls.LogWarning($"[PlayAudio] The prefab {prefab.name} does not have an AudioSource or clip assigned to it.");
             Object.Destroy(audioObject);
             return;
         }
+        audioObject.SetActive(active);
 
         if (!audioSource.playOnAwake) audioSource.Play();
         Object.Destroy(audioObject, audioSource.clip.length);

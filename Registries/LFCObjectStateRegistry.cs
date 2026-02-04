@@ -49,13 +49,16 @@ public class LFCObjectStateRegistry
     public static bool IsFlickeringFlashlight(FlashlightItem flashlight) => flickeringFlashlightRegistry.TryGetValue(flashlight, out HashSet<string> tagSet) && tagSet.Count > 0;
     private static void SetFlickeringFlashlightEnabled(FlashlightItem flashlight, bool enabled)
     {
-        if (enabled)
+        if (flashlight != null)
         {
-            flashlight.flashlightAudio.PlayOneShot(flashlight.flashlightFlicker);
-            WalkieTalkie.TransmitOneShotAudio(flashlight.flashlightAudio, flashlight.flashlightFlicker, 0.8f);
-            flashlight.flashlightInterferenceLevel = 1;
-            return;
+            if (enabled)
+            {
+                flashlight.flashlightAudio.PlayOneShot(flashlight.flashlightFlicker);
+                WalkieTalkie.TransmitOneShotAudio(flashlight.flashlightAudio, flashlight.flashlightFlicker, 0.8f);
+                flashlight.flashlightInterferenceLevel = 1;
+                return;
+            }
+            flashlight.flashlightInterferenceLevel = 0;
         }
-        flashlight.flashlightInterferenceLevel = 0;
     }
 }

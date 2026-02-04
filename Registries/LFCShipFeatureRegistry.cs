@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using LegaFusionCore.ModsCompat;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -24,7 +25,8 @@ public static class LFCShipFeatureRegistry
         SHIP_TERMINAL,
         ITEM_CHARGER,
         SHIP_TV,
-        SHIP_TELEPORTERS
+        SHIP_TELEPORTERS,
+        SMART_CUPBOARD
     }
 
     public static void AddLock(ShipFeatureType featureType, string tag)
@@ -34,13 +36,8 @@ public static class LFCShipFeatureRegistry
             tagSet = [];
             lockRegistry[featureType] = tagSet;
         }
-
-        if (tagSet.Add(tag))
-        {
-            // Si c'est le premier tag -> on désactive réellement
-            if (tagSet.Count == 1)
-                SetFeatureEnabled(featureType, false);
-        }
+        SetFeatureEnabled(featureType, false);
+        _ = tagSet.Add(tag);
     }
 
     public static void RemoveLock(ShipFeatureType featureType, string tag)
@@ -87,6 +84,7 @@ public static class LFCShipFeatureRegistry
             case ShipFeatureType.ITEM_CHARGER: SetItemCharger(enabled); break;
             case ShipFeatureType.SHIP_TV: SetShipTV(enabled); break;
             case ShipFeatureType.SHIP_TELEPORTERS: SetShipTeleporters(enabled); break;
+            case ShipFeatureType.SMART_CUPBOARD: SetSmartCupboard(enabled); break;
 
             default:
                 LegaFusionCore.mls.LogWarning($"[ShipFeatureRegistry] Unknown feature '{featureType}'");
@@ -96,12 +94,20 @@ public static class LFCShipFeatureRegistry
 
     private static void SetShipLights(bool enabled)
     {
-        ShipLights shipLights = StartOfRound.Instance.shipRoomLights;
-        shipLights.areLightsOn = enabled;
-        shipLights.shipLightsAnimator.SetBool("lightsOn", shipLights.areLightsOn);
+        ShipLights shipLights = StartOfRound.Instance?.shipRoomLights;
+        if (shipLights != null)
+        {
+            shipLights.areLightsOn = enabled;
+            shipLights.shipLightsAnimator.SetBool("lightsOn", shipLights.areLightsOn);
+        }
     }
 
-    private static void SetMapScreen(bool enabled) => StartOfRound.Instance.mapScreen.SwitchScreenOn(enabled);
+    private static void SetMapScreen(bool enabled)
+    {
+        ManualCameraRenderer mapScreen = StartOfRound.Instance?.mapScreen;
+        if (mapScreen != null && mapScreen.gameObject != null)
+            mapScreen.SwitchScreenOn(enabled);
+    }
 
     private static void SetShipDoors(bool enabled)
     {
@@ -162,5 +168,17 @@ public static class LFCShipFeatureRegistry
 
         foreach (ShipTeleporter shipTeleporter in shipTeleporters)
             shipTeleporter.buttonTrigger.interactable = enabled;
+    }
+
+    private static void SetSmartCupboard(bool enabled) => SelfSortingStorageSoftCompat.SwitchLights(enabled);
+
+    public static void ResetCache()
+    {
+        shipDoor = null;
+        shipLever = null;
+        shipTerminal = null;
+        itemCharger = null;
+        shipTV = null;
+        shipTeleporters.Clear();
     }
 }

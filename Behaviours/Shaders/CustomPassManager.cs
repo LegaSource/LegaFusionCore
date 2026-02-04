@@ -1,4 +1,5 @@
 ﻿using GameNetcodeStuff;
+using LegaFusionCore.Utilities;
 using System;
 using System.Linq;
 using UnityEngine;
@@ -16,10 +17,10 @@ public class CustomPassManager : MonoBehaviour
     {
         get
         {
-            if (customPassVolume == null)
+            if (customPassVolume == null && LFCUtilities.LocalPlayer != null)
             {
-                customPassVolume = GameNetworkManager.Instance.localPlayerController.gameplayCamera.gameObject.AddComponent<CustomPassVolume>();
-                customPassVolume.targetCamera = GameNetworkManager.Instance.localPlayerController.gameplayCamera;
+                customPassVolume = LFCUtilities.LocalPlayer.gameplayCamera.gameObject.AddComponent<CustomPassVolume>();
+                customPassVolume.targetCamera = LFCUtilities.LocalPlayer.gameplayCamera;
                 customPassVolume.injectionPoint = (CustomPassInjectionPoint)1;
                 customPassVolume.isGlobal = true;
 

@@ -2,6 +2,7 @@
 using BepInEx.Logging;
 using HarmonyLib;
 using LegaFusionCore.Managers.NetworkManagers;
+using LegaFusionCore.ModsCompat;
 using LegaFusionCore.Patches;
 using LegaFusionCore.Registries;
 using LethalLib.Modules;
@@ -35,13 +36,16 @@ public class LegaFusionCore : BaseUnityPlugin
     // Particles
     public static GameObject smokeParticle;
     public static GameObject darkExplosionParticle;
+    public static GameObject brownExplosionParticle;
+    public static GameObject poisonExplosionParticle;
     public static GameObject bluePortalParticle;
     public static GameObject redPortalParticle;
     public static GameObject bloodParticle;
     public static GameObject groundParticle;
 
     // Audios
-    public static GameObject darkExplosionAudio;
+    public static GameObject poofExplosionAudio;
+    public static GameObject poisonExplosionAudio;
     public static GameObject hitProjectileAudio;
 
     public void Awake()
@@ -50,10 +54,10 @@ public class LegaFusionCore : BaseUnityPlugin
         LoadManager();
         NetcodePatcher();
 
-        LoadShaders();
-        LoadParticles();
-        LoadAudios();
+        LoadPrefabs();
+        LoadNetworkPrefabs();
 
+        harmony.PatchAll(typeof(MenuManagerPatch));
         harmony.PatchAll(typeof(StartOfRoundPatch));
         harmony.PatchAll(typeof(RoundManagerPatch));
         harmony.PatchAll(typeof(NetworkBehaviourPatch));
@@ -66,6 +70,12 @@ public class LegaFusionCore : BaseUnityPlugin
         harmony.PatchAll(typeof(PlayerControllerBPatch));
         harmony.PatchAll(typeof(GrabbableObjectPatch));
         harmony.PatchAll(typeof(EnemyAIPatch));
+        harmony.PatchAll(typeof(VehicleControllerPatch));
+
+        GeneralImprovementsSoftCompat.Patch(harmony);
+        GoodItemScanSoftCompat.Patch(harmony);
+        MoreCompantSoftCompat.Patch(harmony);
+        SelfSortingStorageSoftCompat.Patch(harmony);
     }
 
     public static void LoadManager()
@@ -90,7 +100,7 @@ public class LegaFusionCore : BaseUnityPlugin
         }
     }
 
-    public static void LoadShaders()
+    public static void LoadPrefabs()
     {
         wallhackShader = bundle.LoadAsset<Material>("Assets/Shaders/WallhackMaterial.mat");
         transparentShader = bundle.LoadAsset<Material>("Assets/Shaders/TransparentMaterial.mat");
@@ -99,29 +109,20 @@ public class LegaFusionCore : BaseUnityPlugin
         poisonShader = bundle.LoadAsset<Material>("Assets/Shaders/PoisonMaterial.mat");
     }
 
-    public void LoadParticles()
+    public void LoadNetworkPrefabs()
     {
         HashSet<GameObject> gameObjects =
         [
+            // Particles
             (smokeParticle = bundle.LoadAsset<GameObject>("Assets/Particles/SmokeParticle.prefab")),
             (darkExplosionParticle = bundle.LoadAsset<GameObject>("Assets/Particles/DarkExplosionParticle.prefab")),
+            (brownExplosionParticle = bundle.LoadAsset<GameObject>("Assets/Particles/BrownExplosionParticle.prefab")),
+            (poisonExplosionParticle = bundle.LoadAsset<GameObject>("Assets/Particles/PoisonExplosionParticle.prefab")),
             (bluePortalParticle = bundle.LoadAsset<GameObject>("Assets/Particles/BluePortalParticle.prefab")),
-            (redPortalParticle = bundle.LoadAsset<GameObject>("Assets/Particles/RedPortalParticle.prefab"))
-        ];
-
-        foreach (GameObject gameObject in gameObjects)
-        {
-            NetworkPrefabs.RegisterNetworkPrefab(gameObject);
-            LethalLib.Modules.Utilities.FixMixerGroups(gameObject);
-            LFCPrefabRegistry.RegisterPrefab($"{modName}{gameObject.name}", gameObject);
-        }
-    }
-
-    public void LoadAudios()
-    {
-        HashSet<GameObject> gameObjects =
-        [
-            (darkExplosionAudio = bundle.LoadAsset<GameObject>("Assets/Audios/DarkExplosionAudio.prefab")),
+            (redPortalParticle = bundle.LoadAsset<GameObject>("Assets/Particles/RedPortalParticle.prefab")),
+            // Audios
+            (poofExplosionAudio = bundle.LoadAsset<GameObject>("Assets/Audios/PoofExplosionAudio.prefab")),
+            (poisonExplosionAudio = bundle.LoadAsset<GameObject>("Assets/Audios/PoisonExplosionAudio.prefab")),
             (hitProjectileAudio = bundle.LoadAsset<GameObject>("Assets/Audios/HitProjectileAudio.prefab"))
         ];
 

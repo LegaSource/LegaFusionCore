@@ -15,13 +15,8 @@ public static class LFCPoweredLightsRegistry
             tagSet = [];
             lockRegistry[poweredLight] = tagSet;
         }
-
-        if (tagSet.Add(tag))
-        {
-            // Si c'est le premier tag -> on désactive réellement
-            if (tagSet.Count == 1)
-                SetPoweredLightEnabled(poweredLight, false);
-        }
+        SetPoweredLightEnabled(poweredLight, false);
+        _ = tagSet.Add(tag);
     }
 
     public static void RemoveLock(Animator poweredLight, string tag)
@@ -48,5 +43,9 @@ public static class LFCPoweredLightsRegistry
     }
 
     public static bool IsLocked(Animator poweredLight) => lockRegistry.TryGetValue(poweredLight, out HashSet<string> tagSet) && tagSet.Count > 0;
-    private static void SetPoweredLightEnabled(Animator poweredLight, bool enabled) => poweredLight.SetBool("on", enabled);
+    private static void SetPoweredLightEnabled(Animator poweredLight, bool enabled)
+    {
+        if (poweredLight != null && poweredLight.gameObject != null)
+            poweredLight.SetBool("on", enabled);
+    }
 }

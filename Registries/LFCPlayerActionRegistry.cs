@@ -13,13 +13,8 @@ public static class LFCPlayerActionRegistry
             tagSet = [];
             lockRegistry[actionName] = tagSet;
         }
-
-        if (tagSet.Add(tag))
-        {
-            // Si c'est le premier tag -> on désactive réellement
-            if (tagSet.Count == 1)
-                SetActionEnabled(actionName, false);
-        }
+        SetActionEnabled(actionName, false);
+        _ = tagSet.Add(tag);
     }
 
     public static void RemoveLock(string actionName, string tag)

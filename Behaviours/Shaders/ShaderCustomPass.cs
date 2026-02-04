@@ -73,8 +73,7 @@ public class ShaderCustomPass : CustomPass
                     renderer.SetPropertyBlock(block);
                 }
 
-                int subMeshCount = renderer.sharedMaterials.Length;
-                for (int i = 0; i < subMeshCount; i++)
+                for (int i = 0; i < renderer.sharedMaterials.Length; i++)
                     ctx.cmd.DrawRenderer(renderer, material, i, 0);
             }
         }

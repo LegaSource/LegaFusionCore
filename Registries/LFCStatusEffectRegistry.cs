@@ -115,16 +115,19 @@ public class LFCStatusEffectRegistry : MonoBehaviour
             EnemyAI enemy = LFCUtilities.GetSafeComponent<EnemyAI>(entity);
             if (enemy != null && !enemy.isEnemyDead)
             {
-                EnemySpeedBehaviour speedBehaviour = enemy.GetComponent<EnemySpeedBehaviour>();
-                speedBehaviour?.AddSpeedData(StatusEffectType.FROST.ToString(), -0.67f, enemy.agent.speed);
+                enemy.GetComponent<EnemySpeedBehaviour>()?.AddSpeedData(StatusEffectType.FROST.ToString(), -0.67f, enemy.agent.speed);
+                CustomPassManager.SetupAuraForObjects([entity.gameObject], LegaFusionCore.frostShader, $"{LegaFusionCore.modName}{LegaFusionCore.frostShader.name}");
                 return;
             }
 
             PlayerControllerB player = LFCUtilities.GetSafeComponent<PlayerControllerB>(entity);
-            if (player == null || player.isPlayerDead) return;
-
-            if (LFCUtilities.ShouldBeLocalPlayer(player)) LFCStatRegistry.AddModifier(Constants.STAT_SPEED, $"{LegaFusionCore.modName}{LegaFusionCore.frostShader.name}", -100f);
-            else CustomPassManager.SetupAuraForObjects([entity.gameObject], LegaFusionCore.frostShader, $"{LegaFusionCore.modName}{LegaFusionCore.frostShader.name}");
+            if (player != null && !player.isPlayerDead)
+            {
+                if (LFCUtilities.ShouldBeLocalPlayer(player))
+                    LFCStatRegistry.AddModifier(Constants.STAT_SPEED, $"{LegaFusionCore.modName}{LegaFusionCore.frostShader.name}", -100f);
+                else
+                    CustomPassManager.SetupAuraForObjects([entity.gameObject], LegaFusionCore.frostShader, $"{LegaFusionCore.modName}{LegaFusionCore.frostShader.name}");
+            }
         }
 
         public override void Expire(GameObject entity)
@@ -135,13 +138,13 @@ public class LFCStatusEffectRegistry : MonoBehaviour
             EnemyAI enemy = LFCUtilities.GetSafeComponent<EnemyAI>(entity);
             if (enemy != null)
             {
-                EnemySpeedBehaviour speedBehaviour = enemy.GetComponent<EnemySpeedBehaviour>();
-                speedBehaviour?.RemoveSpeedData(StatusEffectType.FROST.ToString());
+                enemy.GetComponent<EnemySpeedBehaviour>()?.RemoveSpeedData(StatusEffectType.FROST.ToString());
                 return;
             }
 
             PlayerControllerB player = LFCUtilities.GetSafeComponent<PlayerControllerB>(entity);
-            if (LFCUtilities.ShouldBeLocalPlayer(player)) LFCStatRegistry.RemoveModifier(Constants.STAT_SPEED, $"{LegaFusionCore.modName}{LegaFusionCore.frostShader.name}");
+            if (LFCUtilities.ShouldBeLocalPlayer(player))
+                LFCStatRegistry.RemoveModifier(Constants.STAT_SPEED, $"{LegaFusionCore.modName}{LegaFusionCore.frostShader.name}");
         }
     }
 

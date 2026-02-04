@@ -10,9 +10,22 @@ namespace LegaFusionCore.Utilities;
 
 public static class LFCUtilities
 {
-    public static bool IsServer => GameNetworkManager.Instance.localPlayerController.IsServer || GameNetworkManager.Instance.localPlayerController.IsHost;
+    public static PlayerControllerB LocalPlayer => GameNetworkManager.Instance?.localPlayerController;
+    public static bool IsServer => LocalPlayer != null && (LocalPlayer.IsServer || LocalPlayer.IsHost);
     public static bool ShouldBeLocalPlayer(PlayerControllerB player) => player != null && player == GameNetworkManager.Instance?.localPlayerController;
     public static bool ShouldNotBeLocalPlayer(PlayerControllerB player) => player != null && player != GameNetworkManager.Instance?.localPlayerController;
+
+    public static bool TryGetComponentInParent<T>(this GameObject gameObject, out T result) where T : Component
+    {
+        result = gameObject.GetComponentInParent<T>();
+        return result != null;
+    }
+
+    public static bool TryGetComponentInChildren<T>(this GameObject gameObject, out T result) where T : Component
+    {
+        result = gameObject.GetComponentInChildren<T>();
+        return result != null;
+    }
 
     public static void Shuffle<T>(IList<T> list)
     {
@@ -21,6 +34,36 @@ public static class LFCUtilities
             int randomIndex = UnityEngine.Random.Range(0, i + 1);
             (list[randomIndex], list[i]) = (list[i], list[randomIndex]);
         }
+    }
+
+    public static string GetGameObjectName(GameObject gObject)
+    {
+        if (gObject == null) return string.Empty;
+
+        string name = gObject.name ?? string.Empty;
+        const string clone = "(Clone)";
+
+        if (name.EndsWith(clone, StringComparison.Ordinal))
+            name = name[..^clone.Length];
+
+        return name.Trim();
+    }
+
+    public static bool HasNameFromList(string name, string listName)
+    {
+        if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(listName))
+            return false;
+
+        foreach (string raw in listName.Split(','))
+        {
+            string item = raw.Trim();
+            if (item.Length == 0) continue;
+
+            if (string.Equals(item, name, StringComparison.Ordinal))
+                return true;
+        }
+
+        return false;
     }
 
     public static void UpdateTimer(ref float timer, float cooldown, bool isActive, Action onReady)
