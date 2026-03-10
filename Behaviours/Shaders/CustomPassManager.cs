@@ -33,7 +33,7 @@ public class CustomPassManager : MonoBehaviour
 
     private static Renderer[] GetFilteredRenderersFromObject(GameObject gObject)
     {
-        Renderer[] renderers = gObject.GetComponentsInChildren<Renderer>().Where(r => r.shadowCastingMode != ShadowCastingMode.ShadowsOnly).ToArray();
+        Renderer[] renderers = gObject.GetComponentsInChildren<Renderer>().Where(r => r != null && r.shadowCastingMode != ShadowCastingMode.ShadowsOnly).ToArray();
         if (renderers.Length == 0) return [];
 
         if (gObject.TryGetComponent<EnemyAI>(out _) || gObject.TryGetComponent<PlayerControllerB>(out _))

@@ -46,25 +46,47 @@ public static class LFCStatRegistry
 
     public static void AddModifier(string id, string tag, float value)
     {
-        if (!stats.TryGetValue(id, out StatEntry entry)) return;
-        entry.modifiers[tag] = value;
+        if (stats.TryGetValue(id, out StatEntry entry))
+            entry.modifiers[tag] = value;
     }
 
     public static void RemoveModifier(string id, string tag)
     {
-        if (!stats.TryGetValue(id, out StatEntry entry)) return;
-        _ = entry.modifiers.Remove(tag);
+        if (stats.TryGetValue(id, out StatEntry entry))
+            _ = entry.modifiers.Remove(tag);
+    }
+
+    public static bool HasModifier(string id, string sourceTag) => stats.TryGetValue(id, out StatEntry entry) && entry.modifiers.ContainsKey(sourceTag);
+    public static bool HasModifierWithTagPrefix(string id, string tagPrefix)
+    {
+        if (stats.TryGetValue(id, out StatEntry entry))
+        {
+            foreach (string tag in entry.modifiers.Keys)
+            {
+                if (tag != null && tag.StartsWith(tagPrefix, System.StringComparison.Ordinal))
+                    return true;
+            }
+        }
+        return false;
     }
 
     public static float? GetFinalValue(string id) => stats.TryGetValue(id, out StatEntry entry) ? entry.FinalValue : null;
-
-    public static bool HasModifier(string id, string sourceTag) => stats.TryGetValue(id, out StatEntry entry) && entry.modifiers.ContainsKey(sourceTag);
-
     public static float GetSumModifier(string id) => stats.TryGetValue(id, out StatEntry entry) ? entry.modifiers.Values.Sum() : 0f;
 
     public static void ClearModifiers(string id)
     {
         if (stats.TryGetValue(id, out StatEntry entry))
             entry.modifiers.Clear();
+    }
+    public static void ClearModifiersWithTagPrefix(string id, string tagPrefix)
+    {
+        if (stats.TryGetValue(id, out StatEntry entry))
+        {
+            foreach (string tag in entry.modifiers.Keys.ToList())
+            {
+                if (tag != null && tag.StartsWith(tagPrefix, System.StringComparison.Ordinal))
+                    _ = entry.modifiers.Remove(tag);
+            }
+        }
     }
 }

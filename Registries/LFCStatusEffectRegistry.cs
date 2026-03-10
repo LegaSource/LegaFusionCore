@@ -2,7 +2,6 @@
 using LegaFusionCore.Behaviours;
 using LegaFusionCore.Behaviours.Shaders;
 using LegaFusionCore.Managers;
-using LegaFusionCore.Patches;
 using LegaFusionCore.Utilities;
 using System;
 using System.Collections.Generic;
@@ -72,7 +71,7 @@ public class LFCStatusEffectRegistry : MonoBehaviour
 
             EnemyAI enemy = LFCUtilities.GetSafeComponent<EnemyAI>(entity);
             if (enemy != null && !enemy.isEnemyDead && LFCEnemyManager.CanDie(enemy))
-                EnemyAIPatch.DamageEnemy(enemy, damage, playerWhoHit, playHitSFX: true);
+                LFCEnemyDamageBehaviour.DamageEnemy(enemy, damage, playerWhoHit, playHitSFX: true);
 
             PlayerControllerB player = LFCUtilities.GetSafeComponent<PlayerControllerB>(entity);
             if (player != null && !player.isPlayerDead)
@@ -88,7 +87,7 @@ public class LFCStatusEffectRegistry : MonoBehaviour
             base.Apply(entity);
 
             PlayerControllerB player = LFCUtilities.GetSafeComponent<PlayerControllerB>(entity);
-            if (LFCUtilities.ShouldNotBeLocalPlayer(player))
+            if (player == null || LFCUtilities.ShouldNotBeLocalPlayer(player))
                 CustomPassManager.SetupAuraForObjects([entity.gameObject], LegaFusionCore.bloodShader, $"{LegaFusionCore.modName}{LegaFusionCore.bloodShader.name}");
         }
 
@@ -115,7 +114,7 @@ public class LFCStatusEffectRegistry : MonoBehaviour
             EnemyAI enemy = LFCUtilities.GetSafeComponent<EnemyAI>(entity);
             if (enemy != null && !enemy.isEnemyDead)
             {
-                enemy.GetComponent<EnemySpeedBehaviour>()?.AddSpeedData(StatusEffectType.FROST.ToString(), -0.67f, enemy.agent.speed);
+                enemy.GetComponent<LFCEnemySpeedBehaviour>()?.AddSpeedData(StatusEffectType.FROST.ToString(), -0.67f, enemy.agent.speed);
                 CustomPassManager.SetupAuraForObjects([entity.gameObject], LegaFusionCore.frostShader, $"{LegaFusionCore.modName}{LegaFusionCore.frostShader.name}");
                 return;
             }
@@ -138,7 +137,7 @@ public class LFCStatusEffectRegistry : MonoBehaviour
             EnemyAI enemy = LFCUtilities.GetSafeComponent<EnemyAI>(entity);
             if (enemy != null)
             {
-                enemy.GetComponent<EnemySpeedBehaviour>()?.RemoveSpeedData(StatusEffectType.FROST.ToString());
+                enemy.GetComponent<LFCEnemySpeedBehaviour>()?.RemoveSpeedData(StatusEffectType.FROST.ToString());
                 return;
             }
 
@@ -156,7 +155,7 @@ public class LFCStatusEffectRegistry : MonoBehaviour
             base.Apply(entity);
 
             PlayerControllerB player = LFCUtilities.GetSafeComponent<PlayerControllerB>(entity);
-            if (LFCUtilities.ShouldNotBeLocalPlayer(player))
+            if (player == null || LFCUtilities.ShouldNotBeLocalPlayer(player))
                 CustomPassManager.SetupAuraForObjects([entity.gameObject], LegaFusionCore.poisonShader, $"{LegaFusionCore.modName}{LegaFusionCore.poisonShader.name}");
         }
 
