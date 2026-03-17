@@ -19,7 +19,7 @@ public class LegaFusionCore : BaseUnityPlugin
 {
     public const string modGUID = "Lega.LegaFusionCore";
     public const string modName = "Lega Fusion Core";
-    public const string modVersion = "1.0.7";
+    public const string modVersion = "1.0.8";
 
     private readonly Harmony harmony = new Harmony(modGUID);
     private static readonly AssetBundle bundle = AssetBundle.LoadFromFile(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "legafusioncore"));
@@ -32,12 +32,14 @@ public class LegaFusionCore : BaseUnityPlugin
     public static Material bloodShader;
     public static Material frostShader;
     public static Material poisonShader;
+    public static Material lightningShader;
 
     // Particles
     public static GameObject smokeParticle;
     public static GameObject darkExplosionParticle;
     public static GameObject brownExplosionParticle;
     public static GameObject poisonExplosionParticle;
+    public static GameObject lightningExplosionParticle;
     public static GameObject bluePortalParticle;
     public static GameObject redPortalParticle;
     public static GameObject bloodParticle;
@@ -46,6 +48,7 @@ public class LegaFusionCore : BaseUnityPlugin
     // Audios
     public static GameObject poofExplosionAudio;
     public static GameObject poisonExplosionAudio;
+    public static GameObject lightningExplosionAudio;
     public static GameObject hitProjectileAudio;
 
     public void Awake()
@@ -102,11 +105,12 @@ public class LegaFusionCore : BaseUnityPlugin
 
     public static void LoadPrefabs()
     {
-        wallhackShader = bundle.LoadAsset<Material>("Assets/Shaders/WallhackMaterial.mat");
-        transparentShader = bundle.LoadAsset<Material>("Assets/Shaders/TransparentMaterial.mat");
-        bloodShader = bundle.LoadAsset<Material>("Assets/Shaders/BloodMaterial.mat");
-        frostShader = bundle.LoadAsset<Material>("Assets/Shaders/FrostMaterial.mat");
-        poisonShader = bundle.LoadAsset<Material>("Assets/Shaders/PoisonMaterial.mat");
+        wallhackShader = bundle.LoadAsset<Material>("Assets/Shaders/M_Wallhack.mat");
+        transparentShader = bundle.LoadAsset<Material>("Assets/Shaders/M_Transparent.mat");
+        bloodShader = bundle.LoadAsset<Material>("Assets/Shaders/M_Blood.mat");
+        frostShader = bundle.LoadAsset<Material>("Assets/Shaders/M_Frost.mat");
+        poisonShader = bundle.LoadAsset<Material>("Assets/Shaders/M_Poison.mat");
+        lightningShader = bundle.LoadAsset<Material>("Assets/Shaders/M_Lightning.mat");
     }
 
     public void LoadNetworkPrefabs()
@@ -118,11 +122,13 @@ public class LegaFusionCore : BaseUnityPlugin
             (darkExplosionParticle = bundle.LoadAsset<GameObject>("Assets/Particles/DarkExplosionParticle.prefab")),
             (brownExplosionParticle = bundle.LoadAsset<GameObject>("Assets/Particles/BrownExplosionParticle.prefab")),
             (poisonExplosionParticle = bundle.LoadAsset<GameObject>("Assets/Particles/PoisonExplosionParticle.prefab")),
+            (lightningExplosionParticle = bundle.LoadAsset<GameObject>("Assets/Particles/LightningExplosionParticle.prefab")),
             (bluePortalParticle = bundle.LoadAsset<GameObject>("Assets/Particles/BluePortalParticle.prefab")),
             (redPortalParticle = bundle.LoadAsset<GameObject>("Assets/Particles/RedPortalParticle.prefab")),
             // Audios
             (poofExplosionAudio = bundle.LoadAsset<GameObject>("Assets/Audios/PoofExplosionAudio.prefab")),
             (poisonExplosionAudio = bundle.LoadAsset<GameObject>("Assets/Audios/PoisonExplosionAudio.prefab")),
+            (lightningExplosionAudio = bundle.LoadAsset<GameObject>("Assets/Audios/LightningExplosionAudio.prefab")),
             (hitProjectileAudio = bundle.LoadAsset<GameObject>("Assets/Audios/HitProjectileAudio.prefab"))
         ];
 

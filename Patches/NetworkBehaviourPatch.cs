@@ -11,7 +11,9 @@ public class NetworkBehaviourPatch
     {
         typeof(GrabbableObject),
         typeof(EnemyAI),
-        typeof(EntranceTeleport)
+        typeof(EntranceTeleport),
+        typeof(Turret),
+        typeof(Landmine)
     };
 
     [HarmonyPatch(typeof(NetworkBehaviour), nameof(NetworkBehaviour.InternalOnNetworkSpawn))]

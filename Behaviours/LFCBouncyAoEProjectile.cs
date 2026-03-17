@@ -199,19 +199,17 @@ public class LFCBouncyAoEProjectile : NetworkBehaviour, IHittable
             int count = Physics.OverlapSphereNonAlloc(position, AoERadius, overlapBuffer, AoEMask, QueryTriggerInteraction.Collide);
             for (int i = 0; i < count; i++)
             {
-                Collider col = overlapBuffer[i];
-                if (col == null) continue;
+                Collider collider = overlapBuffer[i];
+                if (collider == null) continue;
 
-                PlayerControllerB player = col.GetComponentInParent<PlayerControllerB>();
-                if (player != null && !player.isPlayerDead)
+                if (collider.gameObject.TryGetComponentInParent(out PlayerControllerB player) && !player.isPlayerDead)
                 {
                     if (CanAffectPlayer(player) && affectedIds.Add(EncodePlayerId(player.playerClientId)))
                         OnAffectPlayerServer(player);
                     continue;
                 }
 
-                EnemyAICollisionDetect collisionDetect = col.GetComponentInParent<EnemyAICollisionDetect>();
-                if (collisionDetect != null)
+                if (collider.gameObject.TryGetComponentInParent(out EnemyAICollisionDetect collisionDetect))
                 {
                     EnemyAI enemy = collisionDetect.mainScript;
                     if (CanAffectEnemy(enemy) && affectedIds.Add(enemy.NetworkObjectId))

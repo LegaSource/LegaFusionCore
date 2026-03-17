@@ -2,6 +2,7 @@
 using LegaFusionCore.Behaviours;
 using LegaFusionCore.Behaviours.Shaders;
 using LegaFusionCore.Managers;
+using LegaFusionCore.Managers.NetworkManagers;
 using LegaFusionCore.Utilities;
 using System;
 using System.Collections.Generic;
@@ -17,6 +18,7 @@ public class LFCStatusEffectRegistry : MonoBehaviour
         BLEEDING,
         FROST,
         POISON,
+        LIGHTNING,
         FEAR
     }
 
@@ -28,26 +30,30 @@ public class LFCStatusEffectRegistry : MonoBehaviour
         public float EndTime { get; private set; }
         public int TotalDamage { get; }
         public int DamagePerTick { get; }
+        public int PassedTime { get; private set; }
         public float NextTickTime { get; private set; }
 
+        public EnemyAI EnemyWhoHit;
         public Action OnApply;
         public Action OnExpire;
         public Action OnTick;
 
         public float RemainingTime => EndTime - Time.time;
 
-        protected StatusEffect(StatusEffectType effectType, int playerWhoHit, int duration, int totalDamage, Action onApply, Action onExpire, Action onTick)
+        protected StatusEffect(StatusEffectType effectType, int playerWhoHit, int duration, int totalDamage, EnemyAI enemyWhoHit, Action onApply, Action onExpire, Action onTick)
         {
             EffectType = effectType;
             PlayerWhoHit = playerWhoHit;
             Duration = duration;
             EndTime = Time.time + duration;
             TotalDamage = totalDamage;
+            EnemyWhoHit = enemyWhoHit;
             OnApply = onApply;
             OnExpire = onExpire;
             OnTick = onTick;
 
             DamagePerTick = duration > 0 ? totalDamage / duration : 0;
+            PassedTime = 0;
             NextTickTime = Time.time + 1f;
         }
 
@@ -57,6 +63,7 @@ public class LFCStatusEffectRegistry : MonoBehaviour
         {
             OnTick?.Invoke();
             if (DamagePerTick != 0) ApplyDamage(entity, DamagePerTick, PlayerWhoHit);
+            PassedTime += 1;
             NextTickTime += 1f;
         }
 
@@ -67,20 +74,21 @@ public class LFCStatusEffectRegistry : MonoBehaviour
 
         protected void ApplyDamage(GameObject entity, int damage, int playerWhoHit)
         {
-            if (entity == null) return;
+            if (entity != null)
+            {
+                EnemyAI enemy = LFCUtilities.GetSafeComponent<EnemyAI>(entity);
+                if (enemy != null && !enemy.isEnemyDead && LFCEnemyManager.CanDie(enemy))
+                    LFCEnemyDamageBehaviour.DamageEnemy(enemy, damage, playerWhoHit, playHitSFX: true);
 
-            EnemyAI enemy = LFCUtilities.GetSafeComponent<EnemyAI>(entity);
-            if (enemy != null && !enemy.isEnemyDead && LFCEnemyManager.CanDie(enemy))
-                LFCEnemyDamageBehaviour.DamageEnemy(enemy, damage, playerWhoHit, playHitSFX: true);
-
-            PlayerControllerB player = LFCUtilities.GetSafeComponent<PlayerControllerB>(entity);
-            if (player != null && !player.isPlayerDead)
-                player.DamagePlayer(damage, hasDamageSFX: true, callRPC: true, CauseOfDeath.Unknown);
+                PlayerControllerB player = LFCUtilities.GetSafeComponent<PlayerControllerB>(entity);
+                if (player != null && !player.isPlayerDead)
+                    player.DamagePlayer(damage, hasDamageSFX: true, callRPC: true, CauseOfDeath.Unknown);
+            }
         }
     }
 
-    public class BleedingEffect(int playerWhoHit, int duration, int totalDamage, Action onApply = null, Action onExpire = null, Action onTick = null)
-        : StatusEffect(StatusEffectType.BLEEDING, playerWhoHit, duration, totalDamage, onApply, onExpire, onTick)
+    public class BleedingEffect(int playerWhoHit, int duration, int totalDamage, EnemyAI enemyWhoHit = null, Action onApply = null, Action onExpire = null, Action onTick = null)
+        : StatusEffect(StatusEffectType.BLEEDING, playerWhoHit, duration, totalDamage, enemyWhoHit, onApply, onExpire, onTick)
     {
         public override void Apply(GameObject entity)
         {
@@ -104,8 +112,8 @@ public class LFCStatusEffectRegistry : MonoBehaviour
         }
     }
 
-    public class FrostEffect(int playerWhoHit, int duration, int totalDamage, Action onApply = null, Action onExpire = null, Action onTick = null)
-        : StatusEffect(StatusEffectType.FROST, playerWhoHit, duration, totalDamage, onApply, onExpire, onTick)
+    public class FrostEffect(int playerWhoHit, int duration, int totalDamage, EnemyAI enemyWhoHit = null, Action onApply = null, Action onExpire = null, Action onTick = null)
+        : StatusEffect(StatusEffectType.FROST, playerWhoHit, duration, totalDamage, enemyWhoHit, onApply, onExpire, onTick)
     {
         public override void Apply(GameObject entity)
         {
@@ -147,8 +155,8 @@ public class LFCStatusEffectRegistry : MonoBehaviour
         }
     }
 
-    public class PoisonEffect(int playerWhoHit, int duration, int totalDamage, Action onApply = null, Action onExpire = null, Action onTick = null)
-        : StatusEffect(StatusEffectType.POISON, playerWhoHit, duration, totalDamage, onApply, onExpire, onTick)
+    public class PoisonEffect(int playerWhoHit, int duration, int totalDamage, EnemyAI enemyWhoHit = null, Action onApply = null, Action onExpire = null, Action onTick = null)
+        : StatusEffect(StatusEffectType.POISON, playerWhoHit, duration, totalDamage, enemyWhoHit, onApply, onExpire, onTick)
     {
         public override void Apply(GameObject entity)
         {
@@ -163,6 +171,89 @@ public class LFCStatusEffectRegistry : MonoBehaviour
         {
             base.Expire(entity);
             CustomPassManager.RemoveAuraFromObjects([entity.gameObject], $"{LegaFusionCore.modName}{LegaFusionCore.poisonShader.name}");
+        }
+    }
+
+    public class LightningEffect(int playerWhoHit, int duration, int totalDamage, EnemyAI enemyWhoHit = null, Action onApply = null, Action onExpire = null, Action onTick = null)
+        : StatusEffect(StatusEffectType.LIGHTNING, playerWhoHit, duration, totalDamage, enemyWhoHit, onApply, onExpire, onTick)
+    {
+        private readonly HashSet<ulong> affectedIds = [];
+        private readonly Collider[] overlapBuffer = new Collider[64];
+
+        public float AoERadius = 3f;
+        public int AoEMask = 1084754248;
+
+        public override void Apply(GameObject entity)
+        {
+            PlayerControllerB player = LFCUtilities.GetSafeComponent<PlayerControllerB>(entity);
+            if (player == null || LFCUtilities.ShouldNotBeLocalPlayer(player))
+                CustomPassManager.SetupAuraForObjects([entity.gameObject], LegaFusionCore.lightningShader, $"{LegaFusionCore.modName}{LegaFusionCore.lightningShader.name}");
+        }
+
+        public override void Tick(GameObject entity)
+        {
+            base.Tick(entity);
+
+            if (PassedTime == Duration / 2 || PassedTime == Duration)
+            {
+                LFCGlobalManager.PlayParticle($"{LegaFusionCore.modName}{LegaFusionCore.lightningExplosionParticle.name}", entity.transform.position, entity.transform.rotation);
+                LFCGlobalManager.PlayAudio($"{LegaFusionCore.modName}{LegaFusionCore.lightningExplosionAudio.name}", entity.transform.position);
+
+                if (!LFCUtilities.IsServer)
+                    return;
+
+                PlayerControllerB targetedPlayer = LFCUtilities.GetSafeComponent<PlayerControllerB>(entity);
+                PlayerControllerB playerWhoHit = PlayerWhoHit != -1 ? StartOfRound.Instance.allPlayerObjects[PlayerWhoHit].GetComponent<PlayerControllerB>() : null;
+                int count = Physics.OverlapSphereNonAlloc(entity.transform.position, AoERadius, overlapBuffer, AoEMask, QueryTriggerInteraction.Collide);
+
+                for (int i = 0; i < count; i++)
+                {
+                    Collider collider = overlapBuffer[i];
+                    if (collider == null) continue;
+
+                    if (collider.gameObject.TryGetComponentInParent(out PlayerControllerB player) && !player.isPlayerDead)
+                    {
+                        if (player != targetedPlayer && player != playerWhoHit && affectedIds.Add((1UL << 63) | player.playerClientId))
+                        {
+                            if (!HasStatus(player.gameObject, StatusEffectType.LIGHTNING))
+                            {
+                                LFCNetworkManager.Instance.ApplyStatusEveryoneRpc(playerId: playerWhoHit != null ? (int)playerWhoHit.playerClientId : -1,
+                                    targetId: (int)player.playerClientId,
+                                    type: (int)StatusEffectType.LIGHTNING,
+                                    duration: Duration,
+                                    totalDamage: targetedPlayer != null ? TotalDamage : TotalDamage / 10,
+                                    enemyWhoHitObj: EnemyWhoHit != null ? EnemyWhoHit.NetworkObject : default);
+                            }
+                            LFCNetworkManager.Instance.DamagePlayerEveryoneRpc((int)player.playerClientId, 10, hasDamageSFX: true, callRPC: true, (int)CauseOfDeath.Electrocution);
+                        }
+                        continue;
+                    }
+
+                    if (collider.gameObject.TryGetComponentInParent(out EnemyAICollisionDetect collisionDetect))
+                    {
+                        EnemyAI enemy = collisionDetect.mainScript;
+                        if (enemy != null && !enemy.isEnemyDead && enemy.NetworkObject != null && enemy != EnemyWhoHit && affectedIds.Add(enemy.NetworkObjectId))
+                        {
+                            if (!HasStatus(enemy.gameObject, StatusEffectType.LIGHTNING))
+                            {
+                                LFCNetworkManager.Instance.ApplyStatusEveryoneRpc(playerId: playerWhoHit != null ? (int)playerWhoHit.playerClientId : -1,
+                                    enemyObj: enemy.NetworkObject,
+                                    type: (int)StatusEffectType.LIGHTNING,
+                                    duration: Duration,
+                                    totalDamage: targetedPlayer != null ? TotalDamage * 10 : TotalDamage,
+                                    enemyWhoHitObj: EnemyWhoHit != null ? EnemyWhoHit.NetworkObject : default);
+                            }
+                            enemy.HitEnemyOnLocalClient(force: 1, playerWhoHit: playerWhoHit, playHitSFX: true);
+                        }
+                    }
+                }
+            }
+        }
+
+        public override void Expire(GameObject entity)
+        {
+            base.Expire(entity);
+            CustomPassManager.RemoveAuraFromObjects([entity.gameObject], $"{LegaFusionCore.modName}{LegaFusionCore.lightningShader.name}");
         }
     }
 
@@ -188,7 +279,7 @@ public class LFCStatusEffectRegistry : MonoBehaviour
         List<(GameObject, StatusEffectType)> expiredStatus = [];
         List<GameObject> deadEntities = [];
 
-        foreach (KeyValuePair<GameObject, Dictionary<StatusEffectType, StatusEffect>> kv in activeEffects)
+        foreach (KeyValuePair<GameObject, Dictionary<StatusEffectType, StatusEffect>> kv in activeEffects.ToList())
         {
             GameObject entity = kv.Key;
             if (entity == null)
@@ -198,7 +289,7 @@ public class LFCStatusEffectRegistry : MonoBehaviour
             }
             Dictionary<StatusEffectType, StatusEffect> effects = kv.Value;
 
-            foreach (KeyValuePair<StatusEffectType, StatusEffect> effectKvp in effects)
+            foreach (KeyValuePair<StatusEffectType, StatusEffect> effectKvp in effects.ToList())
             {
                 StatusEffect effect = effectKvp.Value;
                 if (effect.ShouldTick()) effect.Tick(entity);
@@ -210,13 +301,14 @@ public class LFCStatusEffectRegistry : MonoBehaviour
         expiredStatus.ForEach(e => RemoveStatus(e.Item1, e.Item2));
     }
 
-    public static void ApplyStatus(GameObject entity, StatusEffectType type, int playerWhoHit, int duration, int totalDamage = 0, Action onApply = null, Action onExpire = null, Action onTick = null)
+    public static void ApplyStatus(GameObject entity, StatusEffectType type, int playerWhoHit, int duration, int totalDamage = 0, EnemyAI enemyWhoHit = null, Action onApply = null, Action onExpire = null, Action onTick = null)
     {
         StatusEffect effect = type switch
         {
-            StatusEffectType.BLEEDING => new BleedingEffect(playerWhoHit, duration, totalDamage, onApply, onExpire, onTick),
-            StatusEffectType.FROST => new FrostEffect(playerWhoHit, duration, totalDamage, onApply, onExpire, onTick),
-            StatusEffectType.POISON => new PoisonEffect(playerWhoHit, duration, totalDamage, onApply, onExpire, onTick),
+            StatusEffectType.BLEEDING => new BleedingEffect(playerWhoHit, duration, totalDamage, enemyWhoHit, onApply, onExpire, onTick),
+            StatusEffectType.FROST => new FrostEffect(playerWhoHit, duration, totalDamage, enemyWhoHit, onApply, onExpire, onTick),
+            StatusEffectType.POISON => new PoisonEffect(playerWhoHit, duration, totalDamage, enemyWhoHit, onApply, onExpire, onTick),
+            StatusEffectType.LIGHTNING => new LightningEffect(playerWhoHit, duration, totalDamage, enemyWhoHit, onApply, onExpire, onTick),
             _ => null
         };
 
@@ -263,10 +355,11 @@ public class LFCStatusEffectRegistry : MonoBehaviour
     {
         foreach (GameObject entity in activeEffects.Keys.ToList())
         {
-            if (!activeEffects.TryGetValue(entity, out Dictionary<StatusEffectType, StatusEffect> effects)) continue;
-
-            effects.Keys.ToList().ForEach(e => RemoveStatus(entity, e));
-            _ = activeEffects.Remove(entity);
+            if (activeEffects.TryGetValue(entity, out Dictionary<StatusEffectType, StatusEffect> effects))
+            {
+                effects.Keys.ToList().ForEach(e => RemoveStatus(entity, e));
+                _ = activeEffects.Remove(entity);
+            }
         }
     }
 }
