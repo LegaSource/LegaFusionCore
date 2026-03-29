@@ -48,8 +48,6 @@ public class LFCBouncyAoEProjectile : NetworkBehaviour, IHittable
     protected virtual bool CanAffectEnemy(EnemyAI enemy)
         => enemy != null && !enemy.isEnemyDead && enemy.NetworkObject != null;
 
-    protected static ulong EncodePlayerId(ulong playerClientId) => (1UL << 63) | playerClientId;
-
     private void FixedUpdate()
     {
         if (rigidbody != null)
@@ -85,7 +83,7 @@ public class LFCBouncyAoEProjectile : NetworkBehaviour, IHittable
         throwingPlayer = (int)player.playerClientId;
 
         affectedIds.Clear();
-        _ = affectedIds.Add(EncodePlayerId(player.playerClientId));
+        _ = affectedIds.Add(LFCUtilities.EncodePlayerId(player.playerClientId));
 
         if (direction.y < PlayerThrowMinY)
             direction = new Vector3(direction.x, PlayerThrowMinY, direction.z).normalized;
@@ -147,7 +145,7 @@ public class LFCBouncyAoEProjectile : NetworkBehaviour, IHittable
     {
         if (collider != null && !deactivated)
         {
-            if (collider.TryGetComponent(out PlayerControllerB player) && LFCUtilities.ShouldBeLocalPlayer(player) && !affectedIds.Contains(EncodePlayerId(player.playerClientId)))
+            if (collider.TryGetComponent(out PlayerControllerB player) && LFCUtilities.ShouldBeLocalPlayer(player) && !affectedIds.Contains(LFCUtilities.EncodePlayerId(player.playerClientId)))
                 ExplodeServerRpc(transform.position, Quaternion.identity);
             else if (LFCUtilities.IsServer && collider.TryGetComponent(out EnemyAICollisionDetect collisionDetect) && collisionDetect.mainScript != null && !affectedIds.Contains(collisionDetect.mainScript.NetworkObjectId))
                 ExplodeServerRpc(transform.position, Quaternion.identity);
@@ -204,7 +202,7 @@ public class LFCBouncyAoEProjectile : NetworkBehaviour, IHittable
 
                 if (collider.gameObject.TryGetComponentInParent(out PlayerControllerB player) && !player.isPlayerDead)
                 {
-                    if (CanAffectPlayer(player) && affectedIds.Add(EncodePlayerId(player.playerClientId)))
+                    if (CanAffectPlayer(player) && affectedIds.Add(LFCUtilities.EncodePlayerId(player.playerClientId)))
                         OnAffectPlayerServer(player);
                     continue;
                 }

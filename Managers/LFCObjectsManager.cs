@@ -31,7 +31,7 @@ public static class LFCObjectsManager
         return item;
     }
 
-    public static void SpawnNewObject(RoundManager roundManager, Item itemToSpawn)
+    public static void SpawnNewObject(RoundManager roundManager, Item itemToSpawn, int minValue, int maxValue)
     {
         try
         {
@@ -53,7 +53,9 @@ public static class LFCObjectsManager
             }
 
             Vector3 position = randomScrapSpawn.transform.position + (Vector3.up * 0.5f);
-            _ = SpawnObjectForServer(itemToSpawn.spawnPrefab, position);
+            GrabbableObject grabbableObject = SpawnObjectForServer(itemToSpawn.spawnPrefab, position);
+            if (itemToSpawn.isScrap && minValue > 0 && maxValue > minValue)
+                LFCNetworkManager.Instance.SetScrapValueEveryoneRpc(grabbableObject.gameObject.GetComponent<NetworkObject>(), UnityEngine.Random.Range(minValue, maxValue + 1));
         }
         catch (Exception arg)
         {

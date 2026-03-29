@@ -9,6 +9,9 @@ public class Constants
     // Enemies
     public const string MOUTH_DOG_PREFAB = "MouthDog";
     public const string EARTH_LEVIATHAN_PREFAB = "SandWorm";
+    // Particles
+    public const string BLOOD_PARTICLES = "BloodParticle";
+    public const string GROUND_PARTICLES = "AppearFromGround1";
     // Messages
     public const string MESSAGE_NO_SHIP_ENERGY = "Not enough energy left...";
     public const string MESSAGE_DEFAULT_ITEM_CHARGER = "(Requires battery-powered item)";

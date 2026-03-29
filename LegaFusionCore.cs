@@ -42,8 +42,6 @@ public class LegaFusionCore : BaseUnityPlugin
     public static GameObject lightningExplosionParticle;
     public static GameObject bluePortalParticle;
     public static GameObject redPortalParticle;
-    public static GameObject bloodParticle;
-    public static GameObject groundParticle;
 
     // Audios
     public static GameObject poofExplosionAudio;
@@ -77,7 +75,9 @@ public class LegaFusionCore : BaseUnityPlugin
 
         GeneralImprovementsSoftCompat.Patch(harmony);
         GoodItemScanSoftCompat.Patch(harmony);
+        ModelReplacementAPISoftCompat.Patch(harmony);
         MoreCompantSoftCompat.Patch(harmony);
+        NameplateTweaksSoftCompat.Patch(harmony);
         SelfSortingStorageSoftCompat.Patch(harmony);
     }
 

@@ -11,15 +11,6 @@ public class LFCEnemyDamageBehaviour
     public static Dictionary<EnemyAI, int> extendedEnemyHP = [];
     public static int rateHP = 100;
 
-    public static void AddSpeedBehaviour(EnemyAI __instance)
-    {
-        if (!__instance.TryGetComponent<LFCEnemySpeedBehaviour>(out _))
-        {
-            LFCEnemySpeedBehaviour speedBehaviour = __instance.gameObject.AddComponent<LFCEnemySpeedBehaviour>();
-            speedBehaviour.enemy = __instance;
-        }
-    }
-
     public static void InitExtendedHP(EnemyAI __instance)
     {
         if (extendedEnemyHP.ContainsKey(__instance)) return;

@@ -30,29 +30,31 @@ public class StartOfRoundPatch
 
     public static void LoadVanillaPrefabs()
     {
-        if (LegaFusionCore.bloodParticle == null)
+        /*if (LegaFusionCore.bloodParticle == null)
             LegaFusionCore.bloodParticle = LoadVanillaParticle(Constants.KNIFE_PREFAB, "BloodParticle");
         if (LegaFusionCore.groundParticle == null)
-            LegaFusionCore.groundParticle = LoadVanillaParticle(Constants.EARTH_LEVIATHAN_PREFAB, "AppearFromGround1");
+            LegaFusionCore.groundParticle = LoadVanillaParticle(Constants.EARTH_LEVIATHAN_PREFAB, "AppearFromGround1");*/
+
+        LoadVanillaParticle(Constants.KNIFE_PREFAB, "BloodParticle");
+        LoadVanillaParticle(Constants.EARTH_LEVIATHAN_PREFAB, "AppearFromGround1");
     }
 
-    public static GameObject LoadVanillaParticle(string prefabName, string particleName)
+    public static void LoadVanillaParticle(string prefabName, string particleName)
     {
         GameObject prefab = LFCUtilities.GetPrefabFromName(prefabName);
-        if (prefab == null) return null;
+        if (prefab != null)
+        {
+            ParticleSystem particleSystem = prefab.GetComponentsInChildren<ParticleSystem>(true).FirstOrDefault(p => p.gameObject.name.Equals(particleName));
+            if (particleSystem != null)
+            {
+                GameObject particle = Object.Instantiate(particleSystem.gameObject);
+                particle.name = particleSystem.gameObject.name;
+                particle.SetActive(false);
+                Object.DontDestroyOnLoad(particle);
 
-        ParticleSystem particleSystem = prefab
-            .GetComponentsInChildren<ParticleSystem>(true)
-            .FirstOrDefault(p => p.gameObject.name.Equals(particleName));
-        if (particleSystem == null) return null;
-
-        GameObject particle = Object.Instantiate(particleSystem.gameObject);
-        particle.name = particleSystem.gameObject.name;
-        particle.SetActive(false);
-        Object.DontDestroyOnLoad(particle);
-
-        LFCPrefabRegistry.RegisterPrefab($"{LegaFusionCore.modName}{particle.name}", particle);
-        return particle;
+                LFCPrefabRegistry.RegisterPrefab($"{LegaFusionCore.modName}{particle.name}", particle);
+            }
+        }
     }
 
     [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.ShipLeave))]

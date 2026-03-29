@@ -102,7 +102,7 @@ public class LFCStatusEffectRegistry : MonoBehaviour
         public override void Tick(GameObject entity)
         {
             base.Tick(entity);
-            LFCGlobalManager.PlayParticle($"{LegaFusionCore.modName}{LegaFusionCore.bloodParticle.name}", entity.transform.position, Quaternion.identity);
+            LFCGlobalManager.PlayParticle($"{LegaFusionCore.modName}{Constants.BLOOD_PARTICLES}", entity.transform.position, Quaternion.identity);
         }
 
         public override void Expire(GameObject entity)

@@ -21,7 +21,7 @@ public class RoundManagerPatch
             for (int i = 0; i < spawnableItem.MaxSpawn; i++)
             {
                 if (i < spawnableItem.MinSpawn || random.Next(0, 100) <= spawnableItem.Rarity)
-                    LFCObjectsManager.SpawnNewObject(__instance, spawnableItem.Item);
+                    LFCObjectsManager.SpawnNewObject(__instance, spawnableItem.Item, spawnableItem.MinValue, spawnableItem.MaxValue);
             }
         }
     }

@@ -14,6 +14,7 @@ public static class LFCUtilities
     public static bool IsServer => LocalPlayer != null && (LocalPlayer.IsServer || LocalPlayer.IsHost);
     public static bool ShouldBeLocalPlayer(PlayerControllerB player) => player != null && player == GameNetworkManager.Instance?.localPlayerController;
     public static bool ShouldNotBeLocalPlayer(PlayerControllerB player) => player != null && player != GameNetworkManager.Instance?.localPlayerController;
+    public static ulong EncodePlayerId(ulong playerClientId) => (1UL << 63) | playerClientId;
 
     public static bool TryGetComponentInParent<T>(this GameObject gameObject, out T result) where T : Component
     {

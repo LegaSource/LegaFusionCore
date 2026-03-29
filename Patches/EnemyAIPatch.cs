@@ -11,7 +11,11 @@ public class EnemyAIPatch
     [HarmonyPostfix]
     public static void PostStart(EnemyAI __instance)
     {
-        LFCEnemyDamageBehaviour.AddSpeedBehaviour(__instance);
+        if (!__instance.TryGetComponent<LFCEnemySpeedBehaviour>(out _))
+        {
+            LFCEnemySpeedBehaviour speedBehaviour = __instance.gameObject.AddComponent<LFCEnemySpeedBehaviour>();
+            speedBehaviour.enemy = __instance;
+        }
         LFCEnemyDamageBehaviour.InitExtendedHP(__instance);
     }
 
