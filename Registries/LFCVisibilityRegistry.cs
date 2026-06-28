@@ -3,12 +3,13 @@ using LegaFusionCore.Utilities;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace LegaFusionCore.Registries;
 
 public class LFCVisibilityRegistry
 {
-    private static readonly Dictionary<GameObject, EntityState> visibilityStates = [];
+    private static readonly Dictionary<GameObject, EntityState> VisibilityStates = [];
 
     private sealed class EntityState
     {
@@ -19,6 +20,7 @@ public class LFCVisibilityRegistry
         public readonly HashSet<PlayerPhysicsRegion> disabledPhysicsRegions = [];
         public readonly HashSet<Collider> disabledColliders = [];
         public readonly HashSet<TextMeshProUGUI> disabledTextMeshes = [];
+        public readonly HashSet<DecalProjector> disabledDecals = [];
         public readonly HashSet<InteractTrigger> disabledInteractTriggers = [];
         public readonly HashSet<AnimatedObjectTrigger> disabledAnimatedTriggers = [];
         public readonly HashSet<ParticleSystem> disabledParticles = [];
@@ -27,39 +29,44 @@ public class LFCVisibilityRegistry
 
     public static void Hide(GameObject entity, string tag)
     {
-        if (entity == null) return;
-        if (string.IsNullOrWhiteSpace(tag)) tag = "default";
-        CleanupDeadEntries();
-
-        if (!visibilityStates.TryGetValue(entity, out EntityState state))
+        if (entity != null)
         {
-            state = new EntityState();
-            visibilityStates[entity] = state;
-        }
+            if (string.IsNullOrWhiteSpace(tag))
+                tag = "default";
+            CleanupDeadEntries();
 
-        HideInternal(entity, state);
-        _ = state.tags.Add(tag);
+            if (!VisibilityStates.TryGetValue(entity, out EntityState state))
+            {
+                state = new EntityState();
+                VisibilityStates[entity] = state;
+            }
+
+            HideInternal(entity, state);
+            _ = state.tags.Add(tag);
+        }
     }
 
     public static void Restore(GameObject entity, string tag)
     {
-        if (entity == null || !visibilityStates.TryGetValue(entity, out EntityState state)) return;
-        if (string.IsNullOrWhiteSpace(tag)) tag = "default";
+        if (entity != null && VisibilityStates.TryGetValue(entity, out EntityState state))
+        {
+            if (string.IsNullOrWhiteSpace(tag))
+                tag = "default";
 
-        _ = state.tags.Remove(tag);
-        if (state.tags.Count > 0) return;
-
-        RestoreInternal(entity, state);
+            _ = state.tags.Remove(tag);
+            if (state.tags.Count == 0)
+                RestoreInternal(entity, state);
+        }
     }
 
     // Force restore pour reset/cleanup
     public static void ForceRestore(GameObject entity)
     {
-        if (entity != null && visibilityStates.TryGetValue(entity, out EntityState state))
+        if (entity != null && VisibilityStates.TryGetValue(entity, out EntityState state))
             RestoreInternal(entity, state);
     }
 
-    public static bool IsHidden(GameObject entity) => entity != null && visibilityStates.ContainsKey(entity);
+    public static bool IsHidden(GameObject entity) => entity != null && VisibilityStates.ContainsKey(entity);
 
     private static void HideInternal(GameObject entity, EntityState state)
     {
@@ -123,6 +130,14 @@ public class LFCVisibilityRegistry
                 _ = state.disabledTextMeshes.Add(textMesh);
             }
         }
+        foreach (DecalProjector decal in entity.GetComponentsInChildren<DecalProjector>(true))
+        {
+            if (decal != null && decal.enabled)
+            {
+                decal.enabled = false;
+                _ = state.disabledDecals.Add(decal);
+            }
+        }
         foreach (InteractTrigger interactTrigger in entity.GetComponentsInChildren<InteractTrigger>(true))
         {
             if (interactTrigger != null && interactTrigger.interactable)
@@ -180,6 +195,8 @@ public class LFCVisibilityRegistry
             if (rigidbody != null) rigidbody.useGravity = true;
         foreach (TextMeshProUGUI textMesh in state.disabledTextMeshes)
             if (textMesh != null) textMesh.enabled = true;
+        foreach (DecalProjector decal in state.disabledDecals)
+            if (decal != null) decal.enabled = true;
         foreach (InteractTrigger interactTrigger in state.disabledInteractTriggers)
             if (interactTrigger != null) interactTrigger.interactable = true;
         foreach (ParticleSystem particle in state.disabledParticles)
@@ -190,14 +207,14 @@ public class LFCVisibilityRegistry
             CullFactorySoftCompat.RefreshGrabbableObjectPosition(grabbableObject);
 
         state.tags.Clear();
-        _ = visibilityStates.Remove(entity);
+        _ = VisibilityStates.Remove(entity);
     }
 
     private static void CleanupDeadEntries()
     {
         List<GameObject> toRemove = null;
 
-        foreach (KeyValuePair<GameObject, EntityState> kv in visibilityStates)
+        foreach (KeyValuePair<GameObject, EntityState> kv in VisibilityStates)
         {
             if (kv.Key == null)
             {
@@ -209,6 +226,6 @@ public class LFCVisibilityRegistry
         if (toRemove == null) return;
 
         foreach (GameObject gameObject in toRemove)
-            _ = visibilityStates.Remove(gameObject);
+            _ = VisibilityStates.Remove(gameObject);
     }
 }

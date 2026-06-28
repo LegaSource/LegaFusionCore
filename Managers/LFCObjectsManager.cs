@@ -31,36 +31,34 @@ public static class LFCObjectsManager
         return item;
     }
 
-    public static void SpawnNewObject(RoundManager roundManager, Item itemToSpawn, int minValue, int maxValue)
+    public static GrabbableObject SpawnNewObject(Item itemToSpawn, int minValue, int maxValue)
     {
-        try
+        RoundManager roundManager = RoundManager.Instance;
+        if (roundManager == null)
+            return null;
+
+        List<RandomScrapSpawn> listRandomScrapSpawn = UnityEngine.Object.FindObjectsOfType<RandomScrapSpawn>().Where(s => !s.spawnUsed).ToList();
+        if (!listRandomScrapSpawn.Any())
+            return null;
+
+        System.Random random = new System.Random();
+        int indexRandomScrapSpawn = random.Next(0, listRandomScrapSpawn.Count);
+        RandomScrapSpawn randomScrapSpawn = listRandomScrapSpawn[indexRandomScrapSpawn];
+        if (randomScrapSpawn.spawnedItemsCopyPosition)
         {
-            System.Random random = new System.Random();
-            List<RandomScrapSpawn> listRandomScrapSpawn = UnityEngine.Object.FindObjectsOfType<RandomScrapSpawn>().Where(s => !s.spawnUsed).ToList();
-
-            if (!listRandomScrapSpawn.Any()) return;
-
-            int indexRandomScrapSpawn = random.Next(0, listRandomScrapSpawn.Count);
-            RandomScrapSpawn randomScrapSpawn = listRandomScrapSpawn[indexRandomScrapSpawn];
-            if (randomScrapSpawn.spawnedItemsCopyPosition)
-            {
-                randomScrapSpawn.spawnUsed = true;
-                listRandomScrapSpawn.RemoveAt(indexRandomScrapSpawn);
-            }
-            else
-            {
-                randomScrapSpawn.transform.position = roundManager.GetRandomNavMeshPositionInBoxPredictable(randomScrapSpawn.transform.position, randomScrapSpawn.itemSpawnRange, roundManager.navHit, roundManager.AnomalyRandom) + (Vector3.up * itemToSpawn.verticalOffset);
-            }
-
-            Vector3 position = randomScrapSpawn.transform.position + (Vector3.up * 0.5f);
-            GrabbableObject grabbableObject = SpawnObjectForServer(itemToSpawn.spawnPrefab, position);
-            if (itemToSpawn.isScrap && minValue > 0 && maxValue > minValue)
-                LFCNetworkManager.Instance.SetScrapValueEveryoneRpc(grabbableObject.gameObject.GetComponent<NetworkObject>(), UnityEngine.Random.Range(minValue, maxValue + 1));
+            randomScrapSpawn.spawnUsed = true;
+            listRandomScrapSpawn.RemoveAt(indexRandomScrapSpawn);
         }
-        catch (Exception arg)
+        else
         {
-            LegaFusionCore.mls.LogError($"Error in SpawnNewItem: {arg}");
+            randomScrapSpawn.transform.position = roundManager.GetRandomNavMeshPositionInBoxPredictable(randomScrapSpawn.transform.position, randomScrapSpawn.itemSpawnRange, roundManager.navHit, roundManager.AnomalyRandom) + (Vector3.up * itemToSpawn.verticalOffset);
         }
+
+        GrabbableObject grabbableObject = SpawnObjectForServer(itemToSpawn.spawnPrefab, randomScrapSpawn.transform.position + (Vector3.up * 0.5f));
+        if (itemToSpawn.isScrap && minValue > 0 && maxValue > minValue)
+            LFCNetworkManager.Instance.SetScrapValueEveryoneRpc(grabbableObject.gameObject.GetComponent<NetworkObject>(), UnityEngine.Random.Range(minValue, maxValue + 1));
+
+        return grabbableObject;
     }
 
     public static GrabbableObject SpawnObjectForServer(GameObject spawnPrefab, Vector3 position)
@@ -79,9 +77,23 @@ public static class LFCObjectsManager
         return grabbableObject;
     }
 
+    public static GrabbableObject[] GetItemSlots(this PlayerControllerB player)
+    {
+        List<GrabbableObject> grabbableObjects = [];
+        foreach (GrabbableObject grabbableObject in player.ItemSlots)
+        {
+            if (grabbableObject != null)
+                grabbableObjects.Add(grabbableObject);
+        }
+        if (player.ItemOnlySlot != null && !grabbableObjects.Contains(player.ItemOnlySlot))
+            grabbableObjects.Add(player.ItemOnlySlot);
+        return grabbableObjects.ToArray();
+    }
+
     public static IEnumerator ForceGrabObjectCoroutine(GrabbableObject grabbableObject, PlayerControllerB player)
     {
-        if (player.FirstEmptyItemSlot() == -1) player.DropAllHeldItemsAndSync();
+        if (player.FirstEmptyItemSlot() == -1)
+            player.DropAllHeldItemsAndSync(player.transform.position, player.localItemHolder.position, player.localItemHolder.eulerAngles, player.playerEye.transform.position, player.playerEye.transform.eulerAngles);
 
         yield return new WaitForSeconds(0.2f);
 
@@ -93,7 +105,8 @@ public static class LFCObjectsManager
             timePassed += 0.1f;
         }
 
-        if (!player.isGrabbingObjectAnimation) ForceGrabObject(grabbableObject, player);
+        if (!player.isGrabbingObjectAnimation)
+            ForceGrabObject(grabbableObject, player);
     }
 
     public static void ForceGrabObject(GrabbableObject grabbableObject, PlayerControllerB player)

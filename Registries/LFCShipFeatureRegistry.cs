@@ -7,7 +7,7 @@ namespace LegaFusionCore.Registries;
 
 public static class LFCShipFeatureRegistry
 {
-    private static readonly Dictionary<ShipFeatureType, HashSet<string>> lockRegistry = [];
+    private static readonly Dictionary<ShipFeatureType, HashSet<string>> ShipLockRegistry = [];
 
     private static HangarShipDoor shipDoor;
     private static StartMatchLever shipLever;
@@ -31,10 +31,10 @@ public static class LFCShipFeatureRegistry
 
     public static void AddLock(ShipFeatureType featureType, string tag)
     {
-        if (!lockRegistry.TryGetValue(featureType, out HashSet<string> tagSet))
+        if (!ShipLockRegistry.TryGetValue(featureType, out HashSet<string> tagSet))
         {
             tagSet = [];
-            lockRegistry[featureType] = tagSet;
+            ShipLockRegistry[featureType] = tagSet;
         }
         SetFeatureEnabled(featureType, false);
         _ = tagSet.Add(tag);
@@ -42,7 +42,7 @@ public static class LFCShipFeatureRegistry
 
     public static void RemoveLock(ShipFeatureType featureType, string tag)
     {
-        if (!lockRegistry.TryGetValue(featureType, out HashSet<string> tagSet)) return;
+        if (!ShipLockRegistry.TryGetValue(featureType, out HashSet<string> tagSet)) return;
 
         if (tagSet.Remove(tag))
         {
@@ -54,23 +54,23 @@ public static class LFCShipFeatureRegistry
 
     public static void ClearLocks(string tag)
     {
-        foreach (ShipFeatureType featureType in lockRegistry.Keys.ToList())
+        foreach (ShipFeatureType featureType in ShipLockRegistry.Keys.ToList())
         {
-            if (lockRegistry.TryGetValue(featureType, out HashSet<string> tagSet) && tagSet.Contains(tag))
+            if (ShipLockRegistry.TryGetValue(featureType, out HashSet<string> tagSet) && tagSet.Contains(tag))
                 RemoveLock(featureType, tag);
         }
     }
 
     public static void ClearLocks()
     {
-        foreach (ShipFeatureType featureType in lockRegistry.Keys.ToList())
+        foreach (ShipFeatureType featureType in ShipLockRegistry.Keys.ToList())
         {
-            if (lockRegistry.TryGetValue(featureType, out HashSet<string> tagSet))
+            if (ShipLockRegistry.TryGetValue(featureType, out HashSet<string> tagSet))
                 tagSet.ToList().ForEach(t => RemoveLock(featureType, t));
         }
     }
 
-    public static bool IsLocked(ShipFeatureType featureType) => lockRegistry.TryGetValue(featureType, out HashSet<string> tagSet) && tagSet.Count > 0;
+    public static bool IsLocked(ShipFeatureType featureType) => ShipLockRegistry.TryGetValue(featureType, out HashSet<string> tagSet) && tagSet.Count > 0;
 
     private static void SetFeatureEnabled(ShipFeatureType featureType, bool enabled)
     {
@@ -112,51 +112,54 @@ public static class LFCShipFeatureRegistry
     private static void SetShipDoors(bool enabled)
     {
         shipDoor ??= Object.FindObjectOfType<HangarShipDoor>();
-        if (shipDoor == null) return;
-
-        shipDoor.hydraulicsScreenDisplayed = enabled;
-        shipDoor.hydraulicsDisplay.SetActive(enabled);
-        shipDoor.SetDoorButtonsEnabled(enabled);
-        if (!enabled)
+        if (shipDoor != null)
         {
-            StartOfRound.Instance.shipDoorsAnimator.SetBool("Closed", value: enabled);
-            shipDoor.SetDoorOpen();
+            shipDoor.hydraulicsScreenDisplayed = enabled;
+            shipDoor.hydraulicsDisplay.SetActive(enabled);
+            shipDoor.SetDoorButtonsEnabled(enabled);
+            if (!enabled)
+            {
+                StartOfRound.Instance.shipDoorsAnimator.SetBool("Closed", value: enabled);
+                shipDoor.SetDoorOpen();
+            }
         }
     }
 
     private static void SetShipLever(bool enabled)
     {
         shipLever ??= Object.FindObjectOfType<StartMatchLever>();
-        if (shipLever == null) return;
-
-        shipLever.triggerScript.disabledHoverTip = enabled ? Constants.MESSAGE_DEFAULT_SHIP_LEVER : Constants.MESSAGE_NO_SHIP_ENERGY;
-        shipLever.triggerScript.interactable = enabled;
+        if (shipLever != null)
+        {
+            shipLever.triggerScript.disabledHoverTip = enabled ? Constants.MESSAGE_DEFAULT_SHIP_LEVER : Constants.MESSAGE_NO_SHIP_ENERGY;
+            shipLever.triggerScript.interactable = enabled;
+        }
     }
 
     private static void SetShipTerminal(bool enabled)
     {
         shipTerminal ??= Object.FindObjectOfType<Terminal>();
-        if (shipTerminal == null) return;
-
-        if (!enabled) shipTerminal.terminalTrigger.disabledHoverTip = Constants.MESSAGE_NO_SHIP_ENERGY;
-        shipTerminal.terminalTrigger.interactable = enabled;
+        if (shipTerminal != null)
+        {
+            if (!enabled)
+                shipTerminal.terminalTrigger.disabledHoverTip = Constants.MESSAGE_NO_SHIP_ENERGY;
+            shipTerminal.terminalTrigger.interactable = enabled;
+        }
     }
 
     private static void SetItemCharger(bool enabled)
     {
         itemCharger ??= Object.FindObjectOfType<ItemCharger>();
-        if (itemCharger == null) return;
-
-        itemCharger.triggerScript.disabledHoverTip = enabled ? Constants.MESSAGE_DEFAULT_ITEM_CHARGER : Constants.MESSAGE_NO_SHIP_ENERGY;
-        itemCharger.triggerScript.interactable = enabled;
+        if (itemCharger != null)
+        {
+            itemCharger.triggerScript.disabledHoverTip = enabled ? Constants.MESSAGE_DEFAULT_ITEM_CHARGER : Constants.MESSAGE_NO_SHIP_ENERGY;
+            itemCharger.triggerScript.interactable = enabled;
+        }
     }
 
     private static void SetShipTV(bool enabled)
     {
         shipTV ??= Object.FindObjectOfType<TVScript>();
-        if (shipTV == null) return;
-
-        shipTV.TurnTVOnOff(enabled);
+        shipTV?.TurnTVOnOff(enabled);
     }
 
     private static void SetShipTeleporters(bool enabled)

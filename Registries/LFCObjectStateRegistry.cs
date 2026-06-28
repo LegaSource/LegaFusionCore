@@ -5,14 +5,14 @@ namespace LegaFusionCore.Registries;
 
 public class LFCObjectStateRegistry
 {
-    private static readonly Dictionary<FlashlightItem, HashSet<string>> flickeringFlashlightRegistry = [];
+    private static readonly Dictionary<FlashlightItem, HashSet<string>> FlickeringFlashlightRegistry = [];
 
     public static void AddFlickeringFlashlight(FlashlightItem flashlight, string tag)
     {
-        if (!flickeringFlashlightRegistry.TryGetValue(flashlight, out HashSet<string> tagSet))
+        if (!FlickeringFlashlightRegistry.TryGetValue(flashlight, out HashSet<string> tagSet))
         {
             tagSet = [];
-            flickeringFlashlightRegistry[flashlight] = tagSet;
+            FlickeringFlashlightRegistry[flashlight] = tagSet;
         }
 
         if (tagSet.Add(tag))
@@ -25,28 +25,30 @@ public class LFCObjectStateRegistry
 
     public static void RemoveFlickeringFlashlight(FlashlightItem flashlight, string tag)
     {
-        if (!flickeringFlashlightRegistry.TryGetValue(flashlight, out HashSet<string> tagSet)) return;
-
-        if (tagSet.Remove(tag))
+        if (FlickeringFlashlightRegistry.TryGetValue(flashlight, out HashSet<string> tagSet))
         {
-            // Si plus aucun tag -> on désactive
-            if (tagSet.Count == 0)
-                SetFlickeringFlashlightEnabled(flashlight, false);
+            if (tagSet.Remove(tag))
+            {
+                // Si plus aucun tag -> on désactive
+                if (tagSet.Count == 0)
+                    SetFlickeringFlashlightEnabled(flashlight, false);
+            }
         }
     }
 
     public static void ClearFlickeringFlashlight()
     {
-        foreach (FlashlightItem flashlight in flickeringFlashlightRegistry.Keys.ToList())
+        foreach (FlashlightItem flashlight in FlickeringFlashlightRegistry.Keys.ToList())
         {
-            if (!flickeringFlashlightRegistry.TryGetValue(flashlight, out HashSet<string> tagSet)) continue;
-
-            tagSet.ToList().ForEach(t => RemoveFlickeringFlashlight(flashlight, t));
-            _ = flickeringFlashlightRegistry.Remove(flashlight);
+            if (FlickeringFlashlightRegistry.TryGetValue(flashlight, out HashSet<string> tagSet))
+            {
+                tagSet.ToList().ForEach(t => RemoveFlickeringFlashlight(flashlight, t));
+                _ = FlickeringFlashlightRegistry.Remove(flashlight);
+            }
         }
     }
 
-    public static bool IsFlickeringFlashlight(FlashlightItem flashlight) => flickeringFlashlightRegistry.TryGetValue(flashlight, out HashSet<string> tagSet) && tagSet.Count > 0;
+    public static bool IsFlickeringFlashlight(FlashlightItem flashlight) => FlickeringFlashlightRegistry.TryGetValue(flashlight, out HashSet<string> tagSet) && tagSet.Count > 0;
     private static void SetFlickeringFlashlightEnabled(FlashlightItem flashlight, bool enabled)
     {
         if (flashlight != null)

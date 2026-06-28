@@ -6,7 +6,7 @@ namespace LegaFusionCore.Managers;
 
 public static class LFCGlobalManager
 {
-    public static void PlayParticle(string tag, Vector3 position, Quaternion rotation, float scaleFactor = 1f, bool active = true)
+    public static void PlayParticle(string tag, Vector3 position, Quaternion rotation, bool scaleMain = true, float scaleFactor = 1f, bool active = true)
     {
         GameObject prefab = LFCPrefabRegistry.GetPrefab(tag);
         if (prefab == null)
@@ -14,10 +14,10 @@ public static class LFCGlobalManager
             LegaFusionCore.mls.LogWarning($"[PlayParticle] No prefab found for the tag: {tag}");
             return;
         }
-        PlayParticle(prefab, position, rotation, scaleFactor, active);
+        PlayParticle(prefab, position, rotation, scaleMain, scaleFactor, active);
     }
 
-    public static void PlayParticle(GameObject prefab, Vector3 position, Quaternion rotation, float scaleFactor = 1f, bool active = true)
+    public static void PlayParticle(GameObject prefab, Vector3 position, Quaternion rotation, bool scaleMain = true, float scaleFactor = 1f, bool active = true)
     {
         GameObject particleObject = Object.Instantiate(prefab, position, rotation);
         particleObject.transform.localScale = prefab.transform.localScale * scaleFactor;
@@ -32,7 +32,7 @@ public static class LFCGlobalManager
         }
         MainModule main = particleSystem.main;
 
-        if (scaleFactor != 1f)
+        if (scaleMain && scaleFactor != 1f)
         {
             // Taille des particules
             main.startSizeMultiplier *= scaleFactor;
@@ -55,8 +55,10 @@ public static class LFCGlobalManager
             main.maxParticles = Mathf.RoundToInt(main.maxParticles * scaleFactor);
         }
 
-        if (!particleSystem.main.playOnAwake) particleSystem.Play();
-        Object.Destroy(particleObject, particleSystem.main.duration);
+        if (!particleSystem.main.playOnAwake)
+            particleSystem.Play();
+
+        Object.Destroy(particleObject, main.duration);
     }
 
     public static void PlayAudio(string tag, Vector3 position, bool active = true)
@@ -82,7 +84,9 @@ public static class LFCGlobalManager
         }
         audioObject.SetActive(active);
 
-        if (!audioSource.playOnAwake) audioSource.Play();
+        if (!audioSource.playOnAwake)
+            audioSource.Play();
+
         Object.Destroy(audioObject, audioSource.clip.length);
     }
 }

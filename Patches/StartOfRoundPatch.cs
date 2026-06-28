@@ -1,6 +1,4 @@
 ﻿using HarmonyLib;
-using LegaFusionCore.Behaviours.Addons;
-using LegaFusionCore.CustomInputs;
 using LegaFusionCore.Managers.NetworkManagers;
 using LegaFusionCore.Registries;
 using LegaFusionCore.Utilities;
@@ -18,7 +16,6 @@ public class StartOfRoundPatch
     private static void StartRound(ref StartOfRound __instance)
     {
         LoadVanillaPrefabs();
-        AddonInput.Instance.EnableInput();
 
         if (NetworkManager.Singleton.IsHost && LFCNetworkManager.Instance == null)
         {
@@ -30,11 +27,6 @@ public class StartOfRoundPatch
 
     public static void LoadVanillaPrefabs()
     {
-        /*if (LegaFusionCore.bloodParticle == null)
-            LegaFusionCore.bloodParticle = LoadVanillaParticle(Constants.KNIFE_PREFAB, "BloodParticle");
-        if (LegaFusionCore.groundParticle == null)
-            LegaFusionCore.groundParticle = LoadVanillaParticle(Constants.EARTH_LEVIATHAN_PREFAB, "AppearFromGround1");*/
-
         LoadVanillaParticle(Constants.KNIFE_PREFAB, "BloodParticle");
         LoadVanillaParticle(Constants.EARTH_LEVIATHAN_PREFAB, "AppearFromGround1");
     }
@@ -61,23 +53,16 @@ public class StartOfRoundPatch
     [HarmonyPostfix]
     public static void EndRound()
     {
-        LFCStatusEffectRegistry.ClearStatus();
         LFCShipFeatureRegistry.ClearLocks();
         LFCPoweredLightsRegistry.ClearLocks();
         LFCObjectStateRegistry.ClearFlickeringFlashlight();
-
-        foreach (AddonComponent addonComponent in Object.FindObjectsOfType<GrabbableObject>().Select(g => g.GetComponent<AddonComponent>()))
-        {
-            if (addonComponent == null) continue;
-            addonComponent.StopCooldown();
-        }
+        LFCTreesRegistry.ClearTrees();
     }
 
     [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.OnDisable))]
     [HarmonyPostfix]
     public static void OnDisable()
     {
-        AddonInput.Instance.DisableInput();
         LFCNetworkManager.Instance = null;
         LFCSpawnRegistry.Clear();
     }

@@ -6,36 +6,38 @@ namespace LegaFusionCore.Registries;
 
 public static class LFCSpawnRegistry
 {
-    private static readonly Dictionary<Type, HashSet<Component>> registry = [];
+    private static readonly Dictionary<Type, HashSet<Component>> SpawnRegistry = [];
 
     public static void Add(Component obj)
     {
-        if (obj == null) return;
-
-        Type type = obj.GetType();
-        if (!registry.TryGetValue(type, out HashSet<Component> set))
+        if (obj != null)
         {
-            set = [];
-            registry[type] = set;
-        }
+            Type type = obj.GetType();
+            if (!SpawnRegistry.TryGetValue(type, out HashSet<Component> set))
+            {
+                set = [];
+                SpawnRegistry[type] = set;
+            }
 
-        if (!set.Contains(obj))
-            _ = set.Add(obj);
+            if (!set.Contains(obj))
+                _ = set.Add(obj);
+        }
     }
 
     public static void Remove(Component obj)
     {
-        if (obj == null) return;
-
-        Type type = obj.GetType();
-        if (registry.TryGetValue(type, out HashSet<Component> set))
-            _ = set.RemoveWhere(c => c == null || c == obj);
+        if (obj != null)
+        {
+            Type type = obj.GetType();
+            if (SpawnRegistry.TryGetValue(type, out HashSet<Component> set))
+                _ = set.RemoveWhere(c => c == null || c == obj);
+        }
     }
 
     public static List<T> GetAllAs<T>() where T : Component
     {
         List<T> result = [];
-        foreach (KeyValuePair<Type, HashSet<Component>> kvp in registry)
+        foreach (KeyValuePair<Type, HashSet<Component>> kvp in SpawnRegistry)
         {
             _ = kvp.Value.RemoveWhere(c => c == null);
 
@@ -49,7 +51,7 @@ public static class LFCSpawnRegistry
     }
 
     public static HashSet<Component> GetSetExact<T>() where T : Component
-        => registry.TryGetValue(typeof(T), out HashSet<Component> set) ? set : null;
+        => SpawnRegistry.TryGetValue(typeof(T), out HashSet<Component> set) ? set : null;
 
-    public static void Clear() => registry.Clear();
+    public static void Clear() => SpawnRegistry.Clear();
 }

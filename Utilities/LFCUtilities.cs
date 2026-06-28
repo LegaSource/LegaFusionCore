@@ -1,5 +1,4 @@
 ﻿using GameNetcodeStuff;
-using LegaFusionCore.Behaviours.Addons;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +9,7 @@ namespace LegaFusionCore.Utilities;
 
 public static class LFCUtilities
 {
+    ////////////////////////////////////////////////// METHODES COMMUNES //////////////////////////////////////////////////
     public static PlayerControllerB LocalPlayer => GameNetworkManager.Instance?.localPlayerController;
     public static bool IsServer => LocalPlayer != null && (LocalPlayer.IsServer || LocalPlayer.IsHost);
     public static bool ShouldBeLocalPlayer(PlayerControllerB player) => player != null && player == GameNetworkManager.Instance?.localPlayerController;
@@ -99,29 +99,22 @@ public static class LFCUtilities
     public static T GetSafeComponent<T>(GameObject gameObject) where T : Component
         => gameObject == null || gameObject is not UnityEngine.Object obj || !obj ? null : gameObject.GetComponent<T>();
 
-    public static void SetAddonComponent<T>(GrabbableObject grabbableObject, string addonName, bool isPassive = false) where T : AddonComponent
-    {
-        T addonComponent = grabbableObject.gameObject.AddComponent<T>();
-        addonComponent.grabbableObject = grabbableObject;
-        addonComponent.addonName = addonName;
-        addonComponent.isPassive = isPassive;
+    ////////////////////////////////////////////////// SERIALIZABLE //////////////////////////////////////////////////
 
-        ScanNodeProperties scanNode = grabbableObject.gameObject.GetComponentInChildren<ScanNodeProperties>();
-        if (scanNode != null) scanNode.subText += (scanNode.subText != null ? "\n" : "") + "Addon: " + addonName;
+    [Serializable]
+    public class SerializableEntry<TKey, TValue>
+    {
+        public TKey Key;
+        public TValue Value;
     }
 
-    public static T GetAddonComponent<T>(PlayerControllerB player) where T : AddonComponent
+    public static Dictionary<TKey, TValue> ToDictionary<TKey, TValue>(this IEnumerable<SerializableEntry<TKey, TValue>> entries)
     {
-        if (player == null) return null;
+        Dictionary<TKey, TValue> dictionary = [];
 
-        T addonComponent = null;
-        for (int i = 0; i < player.ItemSlots.Length; i++)
-        {
-            addonComponent = GetAddonComponent<T>(player.ItemSlots[i]);
-            if (addonComponent != null) break;
-        }
-        return addonComponent;
+        foreach (SerializableEntry<TKey, TValue> entry in entries)
+            dictionary[entry.Key] = entry.Value;
+
+        return dictionary;
     }
-
-    public static T GetAddonComponent<T>(GrabbableObject grabbableObject) where T : AddonComponent => grabbableObject?.GetComponent<T>();
 }

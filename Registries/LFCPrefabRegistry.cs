@@ -5,17 +5,17 @@ namespace LegaFusionCore.Registries;
 
 public static class LFCPrefabRegistry
 {
-    private static readonly Dictionary<string, GameObject> registry = [];
+    private static readonly Dictionary<string, GameObject> PrefabRegistry = [];
 
     public static void RegisterPrefab(string tag, GameObject prefab)
     {
-        if (!registry.ContainsKey(tag))
-            registry.Add(tag, prefab);
+        if (!PrefabRegistry.ContainsKey(tag))
+            PrefabRegistry.Add(tag, prefab);
     }
 
     public static GameObject GetPrefab(string tag)
     {
-        _ = registry.TryGetValue(tag, out GameObject prefab);
+        _ = PrefabRegistry.TryGetValue(tag, out GameObject prefab);
         return prefab;
     }
 }

@@ -4,14 +4,14 @@ namespace LegaFusionCore.Registries;
 
 public static class LFCPlayerActionRegistry
 {
-    private static readonly Dictionary<string, HashSet<string>> lockRegistry = [];
+    private static readonly Dictionary<string, HashSet<string>> ActionLockRegistry = [];
 
     public static void AddLock(string actionName, string tag)
     {
-        if (!lockRegistry.TryGetValue(actionName, out HashSet<string> tagSet))
+        if (!ActionLockRegistry.TryGetValue(actionName, out HashSet<string> tagSet))
         {
             tagSet = [];
-            lockRegistry[actionName] = tagSet;
+            ActionLockRegistry[actionName] = tagSet;
         }
         SetActionEnabled(actionName, false);
         _ = tagSet.Add(tag);
@@ -19,17 +19,18 @@ public static class LFCPlayerActionRegistry
 
     public static void RemoveLock(string actionName, string tag)
     {
-        if (!lockRegistry.TryGetValue(actionName, out HashSet<string> tagSet)) return;
-
-        if (tagSet.Remove(tag))
+        if (ActionLockRegistry.TryGetValue(actionName, out HashSet<string> tagSet))
         {
-            // Si plus aucun tag -> on réactive l’action
-            if (tagSet.Count == 0)
-                SetActionEnabled(actionName, true);
+            if (tagSet.Remove(tag))
+            {
+                // Si plus aucun tag -> on réactive l’action
+                if (tagSet.Count == 0)
+                    SetActionEnabled(actionName, true);
+            }
         }
     }
 
-    public static bool IsLocked(string actionName) => lockRegistry.TryGetValue(actionName, out HashSet<string> tagSet) && tagSet.Count > 0;
+    public static bool IsLocked(string actionName) => ActionLockRegistry.TryGetValue(actionName, out HashSet<string> tagSet) && tagSet.Count > 0;
 
     private static void SetActionEnabled(string actionName, bool enabled)
     {
@@ -40,7 +41,9 @@ public static class LFCPlayerActionRegistry
             return;
         }
 
-        if (enabled) action.Enable();
-        else action.Disable();
+        if (enabled)
+            action.Enable();
+        else
+            action.Disable();
     }
 }

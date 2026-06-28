@@ -115,7 +115,7 @@ public static class LFCEnemyManager
         return false;
     }
 
-    public static IEnumerator WaitForFullAnimation(this EnemyAI enemy, string clipName, float maxDuration = 10, int layer = 0)
+    public static IEnumerator WaitForFullAnimation(this EnemyAI enemy, string clipName, float maxDuration = 10, int layer = 0, Action<float>? onProgress = null)
     {
         float timer = 0f;
 
@@ -133,6 +133,12 @@ public static class LFCEnemyManager
         // Attendre fin du clip
         while (enemy.creatureAnimator.GetCurrentAnimatorStateInfo(layer).normalizedTime < 1f)
         {
+            if (onProgress != null)
+            {
+                float progress = Mathf.Clamp01(enemy.creatureAnimator.GetCurrentAnimatorStateInfo(layer).normalizedTime);
+                onProgress.Invoke(progress);
+            }
+
             timer += Time.deltaTime;
             if (timer > maxDuration) yield break;
             yield return null;

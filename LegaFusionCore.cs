@@ -19,7 +19,7 @@ public class LegaFusionCore : BaseUnityPlugin
 {
     public const string modGUID = "Lega.LegaFusionCore";
     public const string modName = "Lega Fusion Core";
-    public const string modVersion = "1.0.8";
+    public const string modVersion = "1.1.2";
 
     private readonly Harmony harmony = new Harmony(modGUID);
     private static readonly AssetBundle bundle = AssetBundle.LoadFromFile(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "legafusioncore"));
@@ -29,10 +29,6 @@ public class LegaFusionCore : BaseUnityPlugin
     // Shaders
     public static Material wallhackShader;
     public static Material transparentShader;
-    public static Material bloodShader;
-    public static Material frostShader;
-    public static Material poisonShader;
-    public static Material lightningShader;
 
     // Particles
     public static GameObject smokeParticle;
@@ -103,14 +99,10 @@ public class LegaFusionCore : BaseUnityPlugin
         }
     }
 
-    public static void LoadPrefabs()
+    public void LoadPrefabs()
     {
         wallhackShader = bundle.LoadAsset<Material>("Assets/Shaders/M_Wallhack.mat");
         transparentShader = bundle.LoadAsset<Material>("Assets/Shaders/M_Transparent.mat");
-        bloodShader = bundle.LoadAsset<Material>("Assets/Shaders/M_Blood.mat");
-        frostShader = bundle.LoadAsset<Material>("Assets/Shaders/M_Frost.mat");
-        poisonShader = bundle.LoadAsset<Material>("Assets/Shaders/M_Poison.mat");
-        lightningShader = bundle.LoadAsset<Material>("Assets/Shaders/M_Lightning.mat");
     }
 
     public void LoadNetworkPrefabs()

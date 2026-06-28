@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -8,84 +10,80 @@ public static class LFCStatRegistry
 {
     private class StatEntry
     {
-        public float baseValue;
-        public float? minValue;
-        public float? maxValue;
+        public readonly Dictionary<string, float> Modifiers = [];
+        public float? minMultiplier;
+        public float? maxMultiplier;
 
-        public readonly Dictionary<string, float> modifiers = [];
-
-        public float FinalValue
+        public float Multiplier
         {
             get
             {
-                float multiplier = 1f + modifiers.Values.Sum();
-                float value = baseValue * multiplier;
-
-                if (minValue.HasValue) value = Mathf.Max(minValue.Value, value);
-                if (maxValue.HasValue) value = Mathf.Min(maxValue.Value, value);
-                return value;
+                float multiplier = 1f + Modifiers.Values.Sum();
+                if (minMultiplier.HasValue) multiplier = Mathf.Max(minMultiplier.Value, multiplier);
+                if (maxMultiplier.HasValue) multiplier = Mathf.Min(maxMultiplier.Value, multiplier);
+                return multiplier;
             }
         }
     }
 
     private static readonly Dictionary<string, StatEntry> stats = [];
 
-    public static void RegisterStat(string id, float baseValue, float? min = null, float? max = null)
-        => stats[id] = new StatEntry
-        {
-            baseValue = baseValue,
-            minValue = min,
-            maxValue = max
-        };
-
-    public static void SetBaseValue(string id, float newBase)
+    public static void RegisterStat(string id, float? min = null, float? max = null)
     {
-        if (stats.TryGetValue(id, out StatEntry entry))
-            entry.baseValue = newBase;
+        if (!stats.ContainsKey(id))
+            stats[id] = new StatEntry() { minMultiplier = min, maxMultiplier = max };
     }
 
     public static void AddModifier(string id, string tag, float value)
     {
         if (stats.TryGetValue(id, out StatEntry entry))
-            entry.modifiers[tag] = value;
+            entry.Modifiers[tag] = value;
+    }
+
+    public static IEnumerator AddModifierCoroutine(string id, string tag, float value, float duration)
+    {
+        AddModifier(id, tag, value);
+        yield return new WaitForSeconds(duration);
+        RemoveModifier(id, tag);
     }
 
     public static void RemoveModifier(string id, string tag)
     {
         if (stats.TryGetValue(id, out StatEntry entry))
-            _ = entry.modifiers.Remove(tag);
+            _ = entry.Modifiers.Remove(tag);
     }
 
-    public static bool HasModifier(string id, string sourceTag) => stats.TryGetValue(id, out StatEntry entry) && entry.modifiers.ContainsKey(sourceTag);
+    public static bool HasModifier(string id, string tag) => stats.TryGetValue(id, out StatEntry entry) && entry.Modifiers.ContainsKey(tag);
     public static bool HasModifierWithTagPrefix(string id, string tagPrefix)
     {
         if (stats.TryGetValue(id, out StatEntry entry))
         {
-            foreach (string tag in entry.modifiers.Keys)
+            foreach (string tag in entry.Modifiers.Keys)
             {
-                if (tag != null && tag.StartsWith(tagPrefix, System.StringComparison.Ordinal))
+                if (tag != null && tag.StartsWith(tagPrefix, StringComparison.Ordinal))
                     return true;
             }
         }
+
         return false;
     }
 
-    public static float? GetFinalValue(string id) => stats.TryGetValue(id, out StatEntry entry) ? entry.FinalValue : null;
-    public static float GetSumModifier(string id) => stats.TryGetValue(id, out StatEntry entry) ? entry.modifiers.Values.Sum() : 0f;
+    public static float GetMultiplier(string id) => stats.TryGetValue(id, out StatEntry entry) ? 1f + entry.Multiplier : 1f;
 
     public static void ClearModifiers(string id)
     {
         if (stats.TryGetValue(id, out StatEntry entry))
-            entry.modifiers.Clear();
+            entry.Modifiers.Clear();
     }
+
     public static void ClearModifiersWithTagPrefix(string id, string tagPrefix)
     {
         if (stats.TryGetValue(id, out StatEntry entry))
         {
-            foreach (string tag in entry.modifiers.Keys.ToList())
+            foreach (string tag in entry.Modifiers.Keys.ToList())
             {
-                if (tag != null && tag.StartsWith(tagPrefix, System.StringComparison.Ordinal))
-                    _ = entry.modifiers.Remove(tag);
+                if (tag != null && tag.StartsWith(tagPrefix, StringComparison.Ordinal))
+                    _ = entry.Modifiers.Remove(tag);
             }
         }
     }

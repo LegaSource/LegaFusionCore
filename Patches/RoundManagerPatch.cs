@@ -13,7 +13,7 @@ public class RoundManagerPatch
 {
     [HarmonyPatch(typeof(RoundManager), nameof(RoundManager.SpawnScrapInLevel))]
     [HarmonyPostfix]
-    private static void SpawnNewItems(ref RoundManager __instance)
+    private static void SpawnNewItems()
     {
         System.Random random = new System.Random();
         foreach (SpawnableItem spawnableItem in GetAll())
@@ -21,16 +21,34 @@ public class RoundManagerPatch
             for (int i = 0; i < spawnableItem.MaxSpawn; i++)
             {
                 if (i < spawnableItem.MinSpawn || random.Next(0, 100) <= spawnableItem.Rarity)
-                    LFCObjectsManager.SpawnNewObject(__instance, spawnableItem.Item, spawnableItem.MinValue, spawnableItem.MaxValue);
+                    _ = LFCObjectsManager.SpawnNewObject(spawnableItem.Item, spawnableItem.MinValue, spawnableItem.MaxValue);
             }
         }
+    }
+
+    [HarmonyPatch(typeof(RoundManager), nameof(RoundManager.FinishGeneratingLevel))]
+    [HarmonyPostfix]
+    private static void FinishGeneratingLevel()
+    {
+        Collider[] overlapColliders = new Collider[4096];
+        int count = Physics.OverlapSphereNonAlloc(Vector3.zero, 1000f, overlapColliders, 33554432, QueryTriggerInteraction.Ignore);
+        for (int i = 0; i < count; i++)
+            LFCTreesRegistry.AddTree(overlapColliders[i].gameObject);
+    }
+
+    [HarmonyPatch(typeof(RoundManager), nameof(RoundManager.DestroyTreeAtPosition))]
+    [HarmonyPostfix]
+    private static void DestroyTreeAtPosition(Vector3 pos, float range = 5f)
+    {
+        foreach (GameObject treeObject in LFCTreesRegistry.GetTreesAtPosition(pos, range))
+            LFCTreesRegistry.RemoveTree(treeObject);
     }
 
     [HarmonyTranspiler]
     [HarmonyPatch(typeof(RoundManager), nameof(RoundManager.turnOnLights), MethodType.Enumerator)]
     private static IEnumerable<CodeInstruction> TurnOnLights(IEnumerable<CodeInstruction> instructions, ILGenerator il)
     {
-        List<CodeInstruction> code = new List<CodeInstruction>(instructions);
+        List<CodeInstruction> code = [.. instructions];
 
         MethodInfo miSetBool = AccessTools.Method(typeof(Animator), nameof(Animator.SetBool), [typeof(string), typeof(bool)]);
         MethodInfo miIsLocked = AccessTools.Method(typeof(LFCPoweredLightsRegistry), nameof(LFCPoweredLightsRegistry.IsLocked), [typeof(Animator)]);

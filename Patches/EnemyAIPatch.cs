@@ -14,7 +14,7 @@ public class EnemyAIPatch
         if (!__instance.TryGetComponent<LFCEnemySpeedBehaviour>(out _))
         {
             LFCEnemySpeedBehaviour speedBehaviour = __instance.gameObject.AddComponent<LFCEnemySpeedBehaviour>();
-            speedBehaviour.enemy = __instance;
+            speedBehaviour.Enemy = __instance;
         }
         LFCEnemyDamageBehaviour.InitExtendedHP(__instance);
     }
@@ -23,7 +23,7 @@ public class EnemyAIPatch
     [HarmonyPostfix]
     public static void HitEnemyPostfix(EnemyAI __instance, int force = 1, PlayerControllerB playerWhoHit = null, bool playHitSFX = false, int hitID = -1)
     {
-        int rateHP = LFCEnemyDamageBehaviour.rateHP;
+        int rateHP = LFCEnemyDamageBehaviour.RateHP;
         int extendedHP = Mathf.CeilToInt(LFCEnemyDamageBehaviour.GetExtendedHP(__instance) / rateHP);
         if (extendedHP < __instance.enemyHP) return;
 
@@ -33,5 +33,5 @@ public class EnemyAIPatch
 
     [HarmonyPatch(typeof(EnemyAI), nameof(EnemyAI.OnDestroy))]
     [HarmonyPostfix]
-    public static void OnDestroyPostfix(EnemyAI __instance) => _ = LFCEnemyDamageBehaviour.extendedEnemyHP.Remove(__instance);
+    public static void OnDestroyPostfix(EnemyAI __instance) => LFCEnemyDamageBehaviour.RemoveExtendedEnemyHP(__instance);
 }

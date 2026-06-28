@@ -6,14 +6,14 @@ namespace LegaFusionCore.Registries;
 
 public static class LFCSpawnableItemRegistry
 {
-    private static readonly HashSet<SpawnableItem> spawnableItems = [];
+    private static readonly HashSet<SpawnableItem> SpawnableItems = [];
 
     public static void Add(Type type, Item item, int minSpawn, int maxSpawn, int rarity, int minValue = 0, int maxValue = 0)
     {
         _ = LFCObjectsManager.RegisterObject(type, item);
-        _ = spawnableItems.Add(new SpawnableItem(type, item, minSpawn, maxSpawn, rarity, minValue, maxValue));
+        _ = SpawnableItems.Add(new SpawnableItem(type, item, minSpawn, maxSpawn, rarity, minValue, maxValue));
     }
-    public static IReadOnlyCollection<SpawnableItem> GetAll() => spawnableItems;
+    public static IReadOnlyCollection<SpawnableItem> GetAll() => SpawnableItems;
 
     public class SpawnableItem(Type type, Item item, int minSpawn, int maxSpawn, int rarity, int minValue, int maxValue)
     {

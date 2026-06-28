@@ -6,7 +6,7 @@ namespace LegaFusionCore.Registries;
 
 public static class LFCShaderFilterRegistry
 {
-    private static readonly Dictionary<string, Func<GameObject, bool>> filters = [];
+    private static readonly Dictionary<string, Func<GameObject, bool>> FilterRegistry = [];
 
     public static void AddFilter(string modName, Func<GameObject, bool> filter)
     {
@@ -22,18 +22,18 @@ public static class LFCShaderFilterRegistry
             return;
         }
 
-        filters[modName] = filter;
+        FilterRegistry[modName] = filter;
     }
 
     public static void RemoveFilter(string modName)
     {
         if (string.IsNullOrEmpty(modName)) return;
-        _ = filters.Remove(modName);
+        _ = FilterRegistry.Remove(modName);
     }
 
     public static bool ShouldRender(GameObject sourceObject)
     {
-        foreach (KeyValuePair<string, Func<GameObject, bool>> kvp in filters)
+        foreach (KeyValuePair<string, Func<GameObject, bool>> kvp in FilterRegistry)
         {
             try
             {

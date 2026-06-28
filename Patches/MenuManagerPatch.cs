@@ -9,10 +9,10 @@ public class MenuManagerPatch
     [HarmonyPostfix]
     private static void AwakeMenu()
     {
-        LFCStatusEffectRegistry.ClearStatus();
         LFCShipFeatureRegistry.ResetCache();
         LFCShipFeatureRegistry.ClearLocks();
         LFCPoweredLightsRegistry.ClearLocks();
         LFCObjectStateRegistry.ClearFlickeringFlashlight();
+        LFCTreesRegistry.ClearTrees();
     }
 }
