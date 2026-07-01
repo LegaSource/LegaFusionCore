@@ -68,7 +68,7 @@ public static class LFCStatRegistry
         return false;
     }
 
-    public static float GetMultiplier(string id) => stats.TryGetValue(id, out StatEntry entry) ? 1f + entry.Multiplier : 1f;
+    public static float GetMultiplier(string id) => stats.TryGetValue(id, out StatEntry entry) ? entry.Multiplier : 1f;
 
     public static void ClearModifiers(string id)
     {
